@@ -336,8 +336,8 @@ function FormRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[220px_1fr] gap-6 items-start">
-      <div className="font-bold pt-3">
+    <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-2 lg:gap-6 items-start">
+      <div className="font-bold pt-0 lg:pt-3">
         {label} {required && <span className="text-red-500">*</span>}
       </div>
       <div>{children}</div>

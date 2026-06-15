@@ -1,9 +1,14 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 export default function Header() {
+  const [open, setOpen] = useState(false);
+
   return (
     <header className="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-50">
-      <div className="h-24 px-20 flex items-center justify-between">
+      <div className="h-24 px-6 lg:px-20 flex items-center justify-between">
         <a href="/">
           <Image
             src="/logo.png"
@@ -14,41 +19,75 @@ export default function Header() {
           />
         </a>
 
-        <nav className="flex items-center gap-8 text-lg font-bold">
-  <a href="/about">회사소개</a>
+        <nav className="hidden lg:flex items-center gap-8 text-lg font-bold">
+          <a href="/about">회사소개</a>
+          <a href="/products">제형보러가기</a>
+          <a href="/process">진행절차</a>
+          <a href="/portfolio">포트폴리오</a>
+          <a href="/estimate">문의하기</a>
 
-  <a href="/products">
-    제형보러가기
-  </a>
+          <a
+            href="/wish"
+            className="text-sm border px-4 py-2 rounded-full whitespace-nowrap"
+          >
+            관심상품
+          </a>
 
-  <a href="/process">진행절차</a>
+          <a href="/login" className="text-sm whitespace-nowrap">
+            로그인
+          </a>
 
-  <a href="/portfolio">포트폴리오</a>
+          <a
+            href="/signup"
+            className="text-sm bg-black text-white px-4 py-2 rounded-full whitespace-nowrap"
+          >
+            회원가입
+          </a>
+        </nav>
 
-  <a href="/estimate">문의하기</a>
-
-  <a
-    href="/wish"
-    className="text-sm border px-4 py-2 rounded-full"
-  >
-    관심상품
-  </a>
-
-  <a
-    href="/login"
-    className="text-sm"
-  >
-    로그인
-  </a>
-
-  <a
-    href="/signup"
-    className="text-sm bg-black text-white px-4 py-2 rounded-full"
-  >
-    회원가입
-  </a>
-</nav>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="lg:hidden text-4xl font-bold"
+        >
+          ☰
+        </button>
       </div>
+
+      {open && (
+        <div className="lg:hidden border-t bg-white px-6 py-6">
+          <nav className="flex flex-col gap-5 text-lg font-bold">
+            <a href="/about" onClick={() => setOpen(false)}>
+              회사소개
+            </a>
+            <a href="/products" onClick={() => setOpen(false)}>
+              제형보러가기
+            </a>
+            <a href="/process" onClick={() => setOpen(false)}>
+              진행절차
+            </a>
+            <a href="/portfolio" onClick={() => setOpen(false)}>
+              포트폴리오
+            </a>
+            <a href="/estimate" onClick={() => setOpen(false)}>
+              문의하기
+            </a>
+            <a href="/wish" onClick={() => setOpen(false)}>
+              관심상품
+            </a>
+            <a href="/login" onClick={() => setOpen(false)}>
+              로그인
+            </a>
+            <a
+              href="/signup"
+              onClick={() => setOpen(false)}
+              className="bg-black text-white px-5 py-3 rounded-xl text-center"
+            >
+              회원가입
+            </a>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
