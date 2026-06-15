@@ -1,10 +1,28 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setUserEmail(user?.email || "");
+    setAuthReady(true);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+  const logout = async () => {
+    await signOut(auth);
+    alert("로그아웃되었습니다.");
+    window.location.href = "/";
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-50">
@@ -26,23 +44,23 @@ export default function Header() {
           <a href="/portfolio">포트폴리오</a>
           <a href="/estimate">문의하기</a>
 
-          <a
-            href="/wish"
-            className="text-sm border px-4 py-2 rounded-full whitespace-nowrap"
-          >
-            관심상품
-          </a>
+        <a href="/wish">관심상품</a>
 
-          <a href="/login" className="text-sm whitespace-nowrap">
-            로그인
-          </a>
-
-          <a
-            href="/signup"
-            className="text-sm bg-black text-white px-4 py-2 rounded-full whitespace-nowrap"
-          >
-            회원가입
-          </a>
+{authReady && (
+  <>
+    {userEmail ? (
+      <>
+        <a href="/mypage">내정보</a>
+        <button onClick={logout}>로그아웃</button>
+      </>
+    ) : (
+      <>
+        <a href="/login">로그인</a>
+        <a href="/signup">회원가입</a>
+      </>
+    )}
+  </>
+)}
         </nav>
 
         <button
@@ -57,34 +75,36 @@ export default function Header() {
       {open && (
         <div className="lg:hidden border-t bg-white px-6 py-6">
           <nav className="flex flex-col gap-5 text-lg font-bold">
-            <a href="/about" onClick={() => setOpen(false)}>
-              회사소개
-            </a>
-            <a href="/products" onClick={() => setOpen(false)}>
-              제형보러가기
-            </a>
-            <a href="/process" onClick={() => setOpen(false)}>
-              진행절차
-            </a>
-            <a href="/portfolio" onClick={() => setOpen(false)}>
-              포트폴리오
-            </a>
-            <a href="/estimate" onClick={() => setOpen(false)}>
-              문의하기
-            </a>
-            <a href="/wish" onClick={() => setOpen(false)}>
-              관심상품
-            </a>
-            <a href="/login" onClick={() => setOpen(false)}>
-              로그인
-            </a>
-            <a
-              href="/signup"
-              onClick={() => setOpen(false)}
-              className="bg-black text-white px-5 py-3 rounded-xl text-center"
-            >
-              회원가입
-            </a>
+            <a href="/about" onClick={() => setOpen(false)}>회사소개</a>
+            <a href="/products" onClick={() => setOpen(false)}>제형보러가기</a>
+            <a href="/process" onClick={() => setOpen(false)}>진행절차</a>
+            <a href="/portfolio" onClick={() => setOpen(false)}>포트폴리오</a>
+            <a href="/estimate" onClick={() => setOpen(false)}>문의하기</a>
+            <a href="/wish" onClick={() => setOpen(false)}>관심상품</a>
+
+            {userEmail ? (
+              <>
+                <a href="/mypage" onClick={() => setOpen(false)}>내정보</a>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="bg-black text-white px-5 py-3 rounded-xl text-center"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <a href="/login" onClick={() => setOpen(false)}>로그인</a>
+                <a
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  className="bg-black text-white px-5 py-3 rounded-xl text-center"
+                >
+                  회원가입
+                </a>
+              </>
+            )}
           </nav>
         </div>
       )}

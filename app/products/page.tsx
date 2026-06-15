@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 export default function ProductsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [wish, setWish] = useState<string[]>([]);
@@ -11,7 +12,7 @@ export default function ProductsPage() {
   const [filterTag, setFilterTag] = useState("전체");
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [mobileTagOpen, setMobileTagOpen] = useState(false);
-
+const [isLoggedIn, setIsLoggedIn] = useState(false);
   const tagOptions = [
     "전체",
     "진정",
@@ -51,13 +52,18 @@ export default function ProductsPage() {
         }))
       );
     };
-
     loadProducts();
 
     const saved = localStorage.getItem("labbridge-wish");
     if (saved) setWish(JSON.parse(saved));
   }, []);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setIsLoggedIn(!!user);
+  });
 
+  return () => unsubscribe();
+}, []);
   const toggleWish = (id: string) => {
     const next = wish.includes(id)
       ? wish.filter((itemId) => itemId !== id)
@@ -285,8 +291,13 @@ export default function ProductsPage() {
                       <p className="text-gray-600 text-sm">MOQ {item.moq}</p>
 
                       <p className="text-gray-600 text-sm">
-                        g당 단가 {item.unitPrice}원
-                      </p>
+  g당 단가{" "}
+  {isLoggedIn ? (
+    <span>{item.unitPrice}원</span>
+  ) : (
+    <span className="blur-sm select-none">{item.unitPrice}원</span>
+  )}
+</p>
 
                       {item.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-4">

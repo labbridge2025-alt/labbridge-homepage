@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const id = params.id as string;
 
   const [product, setProduct] = useState<any>(null);
-
+const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     if (!id) return;
 
@@ -27,7 +29,13 @@ export default function ProductDetailPage() {
 
     loadProduct();
   }, [id]);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    setIsLoggedIn(!!user);
+  });
 
+  return () => unsubscribe();
+}, []);
   if (!product) {
     return <main className="pt-32 text-center">불러오는 중...</main>;
   }
@@ -79,9 +87,13 @@ export default function ProductDetailPage() {
 
               <div className="flex justify-between">
                 <span className="text-gray-500">g당 단가</span>
-                <strong className="blur-sm select-none">
-                  {product.unitPrice}원
-                </strong>
+                {isLoggedIn ? (
+  <strong>{product.unitPrice}원</strong>
+) : (
+  <strong className="blur-sm select-none">
+    {product.unitPrice}원
+  </strong>
+)}
               </div>
             </div>
 
@@ -151,9 +163,11 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            <p className="mt-5 lg:mt-6 text-xs lg:text-sm text-gray-500 leading-relaxed">
-              g당 단가는 회원 전용 정보입니다. 로그인 후 확인 가능합니다.
-            </p>
+            {!isLoggedIn && (
+  <p className="mt-5 lg:mt-6 text-xs lg:text-sm text-gray-500 leading-relaxed">
+    g당 단가는 회원 전용 정보입니다. 로그인 후 확인 가능합니다.
+  </p>
+)}
           </div>
         </div>
       </section>
