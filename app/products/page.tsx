@@ -9,6 +9,8 @@ export default function ProductsPage() {
   const [wish, setWish] = useState<string[]>([]);
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterTag, setFilterTag] = useState("전체");
+  const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
+  const [mobileTagOpen, setMobileTagOpen] = useState(false);
 
   const tagOptions = [
     "전체",
@@ -53,19 +55,13 @@ export default function ProductsPage() {
     loadProducts();
 
     const saved = localStorage.getItem("labbridge-wish");
-    if (saved) {
-      setWish(JSON.parse(saved));
-    }
+    if (saved) setWish(JSON.parse(saved));
   }, []);
 
   const toggleWish = (id: string) => {
-    let next: string[];
-
-    if (wish.includes(id)) {
-      next = wish.filter((itemId) => itemId !== id);
-    } else {
-      next = [...wish, id];
-    }
+    const next = wish.includes(id)
+      ? wish.filter((itemId) => itemId !== id)
+      : [...wish, id];
 
     setWish(next);
     localStorage.setItem("labbridge-wish", JSON.stringify(next));
@@ -86,11 +82,9 @@ export default function ProductsPage() {
       <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-8 mb-10 lg:mb-12">
           <div>
-            <p className="text-gray-500 font-semibold mb-3 lg:mb-4">
-              PRODUCTS
-            </p>
+            <p className="text-gray-500 font-semibold mb-3">PRODUCTS</p>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 lg:mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
               제품 라인업
             </h1>
 
@@ -107,59 +101,134 @@ export default function ProductsPage() {
           </a>
         </div>
 
-        {/* 모바일 필터바 */}
-<div className="flex lg:hidden gap-2 overflow-x-auto pb-3 mb-8">
-  <button className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold">
-    스킨케어 전체 ▾
-  </button>
+        {/* 모바일 필터 */}
+        <div className="lg:hidden mb-8">
+          <div className="flex gap-2 overflow-x-auto pb-3">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileCategoryOpen(!mobileCategoryOpen);
+                setMobileTagOpen(false);
+              }}
+              className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold"
+            >
+              {filterCategory === "전체" ? "스킨케어 전체" : filterCategory} ▾
+            </button>
 
-  <button className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold">
-    제형 ▾
-  </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileCategoryOpen(!mobileCategoryOpen);
+                setMobileTagOpen(false);
+              }}
+              className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold"
+            >
+              제형 ▾
+            </button>
 
-  <button className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold">
-    효능 ▾
-  </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileTagOpen(!mobileTagOpen);
+                setMobileCategoryOpen(false);
+              }}
+              className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold"
+            >
+              효능 ▾
+            </button>
 
-  <button className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold">
-    샘플가능
-  </button>
-</div>
+            <button
+              type="button"
+              className="shrink-0 border rounded-lg px-4 py-3 text-sm font-bold"
+            >
+              샘플가능
+            </button>
+          </div>
 
-{/* PC 태그 필터 */}
-<div className="hidden lg:flex gap-2 mb-10 overflow-x-auto pb-2">
-  {tagOptions.map((tag) => (
-    <button
-      key={tag}
-      type="button"
-      onClick={() => setFilterTag(tag)}
-      className={`shrink-0 px-4 py-2 rounded-xl border text-sm font-bold ${
-        filterTag === tag
-          ? "bg-black text-white"
-          : "bg-white text-gray-600"
-      }`}
-    >
-      {tag === "전체" ? "전체" : `#${tag}`}
-    </button>
-  ))}
-</div>
+          {mobileCategoryOpen && (
+            <div className="border rounded-2xl p-4 mt-2 bg-white">
+              <p className="font-bold mb-3">제형 선택</p>
+              <div className="flex flex-wrap gap-2">
+                {categoryOptions.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setFilterCategory(cat);
+                      setMobileCategoryOpen(false);
+                    }}
+                    className={`px-4 py-2 rounded-full border text-sm ${
+                      filterCategory === cat
+                        ? "bg-black text-white"
+                        : "bg-white text-gray-600"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mobileTagOpen && (
+            <div className="border rounded-2xl p-4 mt-2 bg-white">
+              <p className="font-bold mb-3">효능 선택</p>
+              <div className="flex flex-wrap gap-2">
+                {tagOptions.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      setFilterTag(tag);
+                      setMobileTagOpen(false);
+                    }}
+                    className={`px-4 py-2 rounded-full border text-sm ${
+                      filterTag === tag
+                        ? "bg-black text-white"
+                        : "bg-white text-gray-600"
+                    }`}
+                  >
+                    {tag === "전체" ? "전체" : `#${tag}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* PC 태그 필터 */}
+        <div className="hidden lg:flex gap-2 mb-10 overflow-x-auto pb-2">
+          {tagOptions.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setFilterTag(tag)}
+              className={`shrink-0 px-4 py-2 rounded-xl border text-sm font-bold ${
+                filterTag === tag
+                  ? "bg-black text-white"
+                  : "bg-white text-gray-600"
+              }`}
+            >
+              {tag === "전체" ? "전체" : `#${tag}`}
+            </button>
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[180px_1fr] xl:grid-cols-[220px_1fr] gap-8 lg:gap-16">
+          {/* PC 카테고리 */}
           <aside className="hidden lg:block">
-            <h3 className="text-lg lg:text-xl font-bold mb-4 lg:mb-8">
-              → 제형
-            </h3>
+            <h3 className="text-xl font-bold mb-8">→ 제형</h3>
 
-            <nav className="flex lg:block gap-2 overflow-x-auto pb-2 lg:pb-0 lg:space-y-5 text-base lg:text-lg">
+            <nav className="space-y-5 text-lg">
               {categoryOptions.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setFilterCategory(cat)}
-                  className={`shrink-0 px-4 py-2 lg:px-0 lg:py-0 rounded-full lg:rounded-none border lg:border-0 text-left ${
+                  className={`block w-full text-left ${
                     filterCategory === cat
-                      ? "font-bold bg-black text-white lg:bg-transparent lg:text-black lg:underline lg:underline-offset-4"
-                      : "text-gray-500 bg-white"
+                      ? "font-bold underline underline-offset-4 text-black"
+                      : "text-gray-500"
                   }`}
                 >
                   {cat}
@@ -168,6 +237,7 @@ export default function ProductsPage() {
             </nav>
           </aside>
 
+          {/* 상품 카드 */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
             {filteredItems.map((item) => {
               const isWish = wish.includes(item.id);
@@ -185,7 +255,7 @@ export default function ProductsPage() {
                       e.stopPropagation();
                       toggleWish(item.id);
                     }}
-                    className="absolute top-4 right-4 z-10 text-3xl transition-all hover:scale-125"
+                    className="absolute top-3 right-3 z-10 text-2xl lg:text-3xl transition-all hover:scale-125"
                   >
                     <span className={isWish ? "text-red-500" : "text-white"}>
                       ♥
@@ -203,40 +273,41 @@ export default function ProductsPage() {
                   </div>
 
                   <div className="p-4 lg:p-6">
-  <p className="text-xs lg:text-sm text-gray-500 mb-2">
-    {item.category}
-  </p>
+                    <p className="text-xs lg:text-sm text-gray-500 mb-2">
+                      {item.category}
+                    </p>
 
-  <h2 className="text-base lg:text-xl font-bold leading-snug line-clamp-2">
-    {item.name}
-  </h2>
+                    <h2 className="text-base lg:text-xl font-bold leading-snug line-clamp-2">
+                      {item.name}
+                    </h2>
 
-  <div className="hidden lg:block mt-3">
-    <p className="text-gray-600 text-sm">MOQ {item.moq}</p>
-    <p className="text-gray-600 text-sm">
-      g당 단가 {item.unitPrice}원
-    </p>
+                    <div className="hidden lg:block mt-3">
+                      <p className="text-gray-600 text-sm">MOQ {item.moq}</p>
 
-    {item.tags?.length > 0 && (
-      <div className="flex flex-wrap gap-2 mt-4">
-        {item.tags.map((tag: string) => (
-          <span
-            key={tag}
-            className="text-xs bg-gray-100 px-2 py-1 rounded-full"
-          >
-            #{tag}
-          </span>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
-</a>
+                      <p className="text-gray-600 text-sm">
+                        g당 단가 {item.unitPrice}원
+                      </p>
+
+                      {item.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {item.tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="text-xs bg-gray-100 px-2 py-1 rounded-full"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </a>
               );
             })}
 
             {filteredItems.length === 0 && (
-              <div className="sm:col-span-2 xl:col-span-3 border rounded-2xl p-12 lg:p-20 text-center text-gray-500">
+              <div className="col-span-2 lg:col-span-3 border rounded-2xl p-12 lg:p-20 text-center text-gray-500">
                 등록된 제품이 없습니다.
               </div>
             )}
