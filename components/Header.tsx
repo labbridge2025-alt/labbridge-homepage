@@ -43,7 +43,7 @@ const [authReady, setAuthReady] = useState(false);
           <a href="/process">진행절차</a>
           <a href="/portfolio">포트폴리오</a>
           <a href="/estimate">문의하기</a>
-
+<a href="/ai-builder">AI 패키지</a>
         <a href="/wish">관심상품</a>
 
 {authReady && (
@@ -78,6 +78,7 @@ const [authReady, setAuthReady] = useState(false);
             <a href="/about" onClick={() => setOpen(false)}>회사소개</a>
             <a href="/products" onClick={() => setOpen(false)}>제형보러가기</a>
             <a href="/process" onClick={() => setOpen(false)}>진행절차</a>
+            <a href="/ai-builder" onClick={() => setOpen(false)}>AI 패키지</a>
             <a href="/portfolio" onClick={() => setOpen(false)}>포트폴리오</a>
             <a href="/estimate" onClick={() => setOpen(false)}>문의하기</a>
             <a href="/wish" onClick={() => setOpen(false)}>관심상품</a>
