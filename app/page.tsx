@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import GuideSlider from "@/components/GuideSlider";
 import HomePortfolio from "@/components/HomePortfolio";
+import Image from "next/image";
 export default function Home() {
   return (
     <>
@@ -143,9 +144,14 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="h-[280px] lg:h-[500px] bg-gray-200 flex items-center justify-center text-xl lg:text-3xl font-bold text-gray-500">
-              IMAGE AREA
-            </div>
+            <div className="relative h-[320px] lg:h-[500px] overflow-hidden rounded-2xl">
+  <Image
+    src="/images/about/about.png"
+    alt="About LabBridge"
+    fill
+    className="object-cover"
+  />
+</div>
           </div>
         </section>
 

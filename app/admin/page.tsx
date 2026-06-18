@@ -1,41 +1,67 @@
-const inquiries = [
-  ["(주)스킨랩", "정은희", "010-1234-5678", "OEM문의", "신규", "2026-06-12"],
-  ["더하애", "김민수", "010-2345-6789", "견적문의", "상담중", "2026-06-12"],
-  ["몽뤼르", "박지영", "010-3456-7890", "ODM문의", "견적발송", "2026-06-11"],
-  ["클린포엘", "이소연", "010-4567-8901", "OEM문의", "계약완료", "2026-06-11"],
-];
+"use client";
 
-const menus = [
+import { useEffect, useState } from "react";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+type Inquiry = {
+  id: string;
+  company?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  formula?: string;
+  memo?: string;
+  status?: string;
+  createdAt?: any;
+};
+
+const sideMenus = [
   ["대시보드", "/admin"],
   ["문의 관리", "/admin/inquiries"],
-  ["게시판 관리", "/admin/boards"],
-  ["상세페이지 관리", "/admin/pages"],
-  ["상품 관리", "/admin/products"],
+  ["가이드 배너", "/admin/guide"],
+  ["포트폴리오", "/admin/portfolio"],
   ["팝업 관리", "/admin/popup"],
-  ["배너 관리", "/admin/banners"],
-  ["포트폴리오 관리", "/admin/portfolio"],
-  ["회원 관리", "/admin/users"],
-  ["설정", "/admin/settings"],
+  ["상품 관리", "/admin/products"],
 ];
 
 export default function AdminPage() {
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+
+  useEffect(() => {
+    const loadInquiries = async () => {
+      const q = query(
+        collection(db, "inquiries"),
+        orderBy("createdAt", "desc"),
+        limit(5)
+      );
+
+      const snapshot = await getDocs(q);
+
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Inquiry, "id">),
+      }));
+
+      setInquiries(data);
+    };
+
+    loadInquiries();
+  }, []);
+
   return (
-    <main className="min-h-screen bg-gray-50 flex">
-      <aside className="w-72 bg-[#0f1b2d] text-white p-6 flex flex-col">
-        <div className="mb-10">
-          <h1 className="text-2xl font-bold">LABBRIDGE</h1>
-          <p className="text-sm text-gray-400">ADMIN</p>
-        </div>
+    <main className="min-h-screen bg-[#f4f6f8] flex">
+      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
+        <h1 className="text-xl font-bold">LABBRIDGE</h1>
+        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
 
         <nav className="space-y-2 flex-1">
-          {menus.map(([name, href], index) => (
+          {sideMenus.map(([name, href], index) => (
             <a
               key={name}
               href={href}
-              className={`block px-5 py-4 rounded-xl text-sm font-semibold ${
-                index === 0
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:bg-white/10"
+              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
+                index === 0 ? "bg-blue-600" : "text-gray-300 hover:bg-white/10"
               }`}
             >
               {name}
@@ -45,141 +71,119 @@ export default function AdminPage() {
 
         <a
           href="/"
-          className="mt-8 border border-white/20 rounded-xl px-5 py-4 text-sm text-gray-300 hover:bg-white/10"
+          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
         >
-          사이트 바로가기 →
+          사이트 이동 →
         </a>
       </aside>
 
-      <section className="flex-1 p-10">
-        <div className="flex justify-between items-center mb-10">
-          <h2 className="text-4xl font-bold">대시보드</h2>
-          <div className="text-sm text-gray-500">정은희 님</div>
+      <section className="flex-1 p-6 lg:p-10">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold">대시보드</h2>
+          <p className="text-sm text-gray-500">관리자</p>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          {[
-            ["오늘 문의", "12건", "어제보다 3건 ↑"],
-            ["이번달 문의", "37건", "지난달보다 8건 ↑"],
-            ["진행중 견적", "7건", "전체 견적의 35%"],
-            ["활성 팝업", "1개", "사용중"],
-          ].map(([title, value, desc]) => (
-            <div key={title} className="bg-white rounded-2xl border p-7 shadow-sm">
-              <p className="text-gray-500 font-semibold mb-4">{title}</p>
-              <h3 className="text-4xl font-bold mb-3">{value}</h3>
-              <p className="text-sm text-gray-400">{desc}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <DashboardBox
+            title="최근 문의"
+            value={`${inquiries.length}건`}
+            desc="최근 등록된 문의"
+          />
+          <DashboardBox
+            title="신규 문의"
+            value={`${inquiries.filter((i) => !i.status || i.status === "신규").length}건`}
+            desc="확인 필요"
+          />
+          <DashboardBox
+            title="상담중"
+            value={`${inquiries.filter((i) => i.status === "상담중").length}건`}
+            desc="진행중인 문의"
+          />
+          <DashboardBox
+            title="견적발송"
+            value={`${inquiries.filter((i) => i.status === "견적발송").length}건`}
+            desc="견적 발송 완료"
+          />
         </div>
 
-        <div className="grid grid-cols-[1.4fr_1fr] gap-6 mb-8">
-          <div className="bg-white rounded-2xl border p-7 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">최근 문의 내역</h3>
-              <a href="/admin/inquiries" className="text-sm text-gray-500">
-                더보기 →
-              </a>
-            </div>
-
+        <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6 mb-6">
+          <AdminCard title="최근 문의 내역" href="/admin/inquiries">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-gray-500">
-                  <th className="py-4 text-left">회사명</th>
-                  <th className="py-4 text-left">담당자</th>
-                  <th className="py-4 text-left">연락처</th>
-                  <th className="py-4 text-left">문의 유형</th>
-                  <th className="py-4 text-left">상태</th>
-                  <th className="py-4 text-left">문의일</th>
+                  <th className="py-3 text-left">회사명</th>
+                  <th className="py-3 text-left">담당자</th>
+                  <th className="py-3 text-left">연락처</th>
+                  <th className="py-3 text-left">문의 유형</th>
+                  <th className="py-3 text-left">상태</th>
+                  <th className="py-3 text-left">문의일</th>
                 </tr>
               </thead>
+
               <tbody>
-                {inquiries.map((row) => (
-                  <tr key={row[0]} className="border-b last:border-b-0">
-                    {row.map((cell, idx) => (
-                      <td key={idx} className="py-4">
-                        {idx === 4 ? <StatusBadge status={cell} /> : cell}
-                      </td>
-                    ))}
+                {inquiries.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                      아직 문의 내역이 없습니다.
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  inquiries.map((item) => (
+                    <tr key={item.id} className="border-b last:border-0">
+                      <td className="py-4">{item.company || "-"}</td>
+                      <td className="py-4">{item.name || "-"}</td>
+                      <td className="py-4">{item.phone || "-"}</td>
+                      <td className="py-4">{item.formula || "제조 문의"}</td>
+                      <td className="py-4">
+                        <StatusBadge status={item.status || "신규"} />
+                      </td>
+                      <td className="py-4">{formatDate(item.createdAt)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-          </div>
+          </AdminCard>
 
-          <div className="bg-white rounded-2xl border p-7 shadow-sm">
-            <h3 className="text-2xl font-bold mb-6">상품 관리 현황</h3>
-
-            {[
-              ["전체 상품", "28개"],
-              ["스킨케어", "15개"],
-              ["헤어", "6개"],
-              ["바디", "5개"],
-              ["색조", "2개"],
-            ].map(([name, count]) => (
-              <div
-                key={name}
-                className="flex justify-between items-center border-b last:border-b-0 py-4"
-              >
-                <div>
-                  <p className="font-semibold">{name}</p>
-                  <p className="text-sm text-gray-400">{count}</p>
-                </div>
+          <AdminCard title="바로가기">
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["가이드 배너", "/admin/guide"],
+                ["포트폴리오", "/admin/portfolio"],
+                ["팝업 관리", "/admin/popup"],
+                ["문의 내역", "/admin/inquiries"],
+                ["상품 관리", "/admin/products"],
+                ["사이트 보기", "/"],
+              ].map(([name, href]) => (
                 <a
-                  href="/admin/products"
-                  className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                  key={name}
+                  href={href}
+                  className="border rounded-xl px-4 py-5 font-semibold hover:bg-black hover:text-white transition"
                 >
-                  관리하기
+                  {name} →
                 </a>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </AdminCard>
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          <AdminCard title="디자인 관리 현황">
-            {[
-              ["팝업 현황", "1개 사용중", "/admin/popup"],
-              ["배너 현황", "3개 사용중", "/admin/banners"],
-              ["포트폴리오 현황", "12개 등록됨", "/admin/portfolio"],
-            ].map(([title, desc, href]) => (
-              <div key={title} className="flex justify-between items-center py-4 border-b last:border-b-0">
-                <div>
-                  <p className="font-bold">{title}</p>
-                  <p className="text-sm text-gray-400">{desc}</p>
-                </div>
-                <a href={href} className="px-4 py-2 border rounded-lg text-sm">
-                  관리하기
-                </a>
-              </div>
-            ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <AdminCard title="디자인 관리">
+            <ManageRow title="가이드 배너" desc="메인 슬라이드 관리" href="/admin/guide" />
+            <ManageRow title="팝업 관리" desc="팝업 이미지 및 링크" href="/admin/popup" />
+            <ManageRow title="포트폴리오" desc="브랜드 사례 등록" href="/admin/portfolio" />
           </AdminCard>
 
-          <AdminCard title="상세페이지 관리 현황">
-            {["회사소개", "서비스 소개", "진행절차", "포트폴리오"].map((name) => (
-              <div key={name} className="flex justify-between items-center py-4 border-b last:border-b-0">
-                <div>
-                  <p className="font-bold">{name}</p>
-                  <p className="text-sm text-gray-400">수정일 2026-06-12</p>
-                </div>
-                <a href="/admin/pages" className="px-4 py-2 border rounded-lg text-sm">
-                  관리하기
-                </a>
-              </div>
-            ))}
+          <AdminCard title="콘텐츠 관리">
+            <ManageRow title="상품 관리" desc="제형/제품 리스트" href="/admin/products" />
+            <ManageRow title="게시판 관리" desc="공지사항/가이드" href="/admin/boards" />
+            <ManageRow title="페이지 관리" desc="회사소개/진행절차" href="/admin/pages" />
           </AdminCard>
 
-          <AdminCard title="게시판 문의 현황">
-            {[
-              ["OEM 견적 문의드립니다.", "답변대기"],
-              ["샘플 제작 기간 문의", "답변완료"],
-              ["MOQ 관련 문의드립니다.", "답변대기"],
-              ["패키지 최소 수량 문의", "답변완료"],
-            ].map(([title, status]) => (
-              <div key={title} className="flex justify-between items-center py-4 border-b last:border-b-0">
-                <p className="font-semibold">{title}</p>
-                <StatusBadge status={status} />
-              </div>
-            ))}
+          <AdminCard title="고객 관리">
+            <ManageRow title="문의 관리" desc="견적 문의 확인" href="/admin/inquiries" />
+            <ManageRow title="회원 관리" desc="가입 회원 관리" href="/admin/users" />
+            <ManageRow title="설정" desc="사이트 기본 설정" href="/admin/settings" />
           </AdminCard>
         </div>
       </section>
@@ -187,17 +191,71 @@ export default function AdminPage() {
   );
 }
 
+function DashboardBox({
+  title,
+  value,
+  desc,
+}: {
+  title: string;
+  value: string;
+  desc: string;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border p-6">
+      <p className="text-gray-500 text-sm font-semibold mb-3">{title}</p>
+      <h3 className="text-3xl font-bold mb-2">{value}</h3>
+      <p className="text-xs text-gray-400">{desc}</p>
+    </div>
+  );
+}
+
 function AdminCard({
   title,
+  href,
   children,
 }: {
   title: string;
+  href?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border p-7 shadow-sm">
-      <h3 className="text-2xl font-bold mb-6">{title}</h3>
+    <div className="bg-white rounded-2xl border p-6">
+      <div className="flex justify-between items-center mb-5">
+        <h3 className="text-xl font-bold">{title}</h3>
+        {href && (
+          <a href={href} className="text-sm text-gray-500">
+            더보기 →
+          </a>
+        )}
+      </div>
+
       {children}
+    </div>
+  );
+}
+
+function ManageRow({
+  title,
+  desc,
+  href,
+}: {
+  title: string;
+  desc: string;
+  href: string;
+}) {
+  return (
+    <div className="flex justify-between items-center py-4 border-b last:border-0">
+      <div>
+        <p className="font-bold">{title}</p>
+        <p className="text-sm text-gray-400">{desc}</p>
+      </div>
+
+      <a
+        href={href}
+        className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+      >
+        관리
+      </a>
     </div>
   );
 }
@@ -210,13 +268,27 @@ function StatusBadge({ status }: { status: string }) {
       ? "bg-green-50 text-green-600 border-green-200"
       : status === "견적발송"
       ? "bg-orange-50 text-orange-600 border-orange-200"
-      : status === "계약완료" || status === "답변완료"
+      : status === "계약완료"
       ? "bg-purple-50 text-purple-600 border-purple-200"
-      : "bg-yellow-50 text-yellow-600 border-yellow-200";
+      : "bg-gray-50 text-gray-500 border-gray-200";
 
   return (
-    <span className={`inline-block px-3 py-1 rounded-lg border text-xs font-bold ${color}`}>
+    <span
+      className={`inline-block px-3 py-1 rounded-lg border text-xs font-bold ${color}`}
+    >
       {status}
     </span>
   );
+}
+
+function formatDate(createdAt: any) {
+  if (!createdAt) return "-";
+
+  const date = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+
+  return date.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
