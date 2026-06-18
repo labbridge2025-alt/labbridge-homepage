@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
-
-
+import GuideSlider from "@/components/GuideSlider";
+import HomePortfolio from "@/components/HomePortfolio";
 export default function Home() {
   return (
     <>
@@ -29,7 +29,7 @@ export default function Home() {
             </a>
           </div>
         </section>
-
+<GuideSlider />
         <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-4xl lg:text-6xl font-bold mb-10 lg:mb-20">
@@ -59,13 +59,68 @@ export default function Home() {
               PROCESS
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 text-lg lg:text-2xl font-semibold">
-              <div>01 상담</div>
-              <div>02 견적</div>
-              <div>03 샘플</div>
-              <div>04 생산</div>
-              <div>05 출고</div>
-            </div>
+            <div className="relative">
+  <div className="hidden lg:block absolute top-[150px] left-0 right-0 h-px bg-gray-300" />
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 relative z-10">
+    {[
+      {
+        num: "01",
+        title: "상담",
+        desc: "브랜드 컨셉 및 제품 방향 상담",
+        image: "/images/process/consult.png",
+      },
+      {
+        num: "02",
+        title: "샘플",
+        desc: "제형 테스트 및 샘플 제작",
+        image: "/images/process/sample.png",
+      },
+      {
+        num: "03",
+        title: "견적",
+        desc: "원가 및 생산 일정 안내",
+        image: "/images/process/estimate.png",
+      },
+      {
+        num: "04",
+        title: "생산",
+        desc: "제조 및 품질 관리 진행",
+        image: "/images/process/production.png",
+      },
+      {
+        num: "05",
+        title: "출고",
+        desc: "검수 후 안전하게 출고",
+        image: "/images/process/delivery.png",
+      },
+    ].map((item) => (
+      <div key={item.num} className="group">
+        <div className="relative bg-gray-50 mb-6 overflow-hidden">
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full aspect-[5/7] object-cover transition duration-500 group-hover:scale-105"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-gray-400 text-xl font-semibold">
+            {item.num}
+          </span>
+
+          <h3 className="text-2xl lg:text-3xl font-bold">
+            {item.title}
+          </h3>
+        </div>
+
+        <p className="text-gray-500 leading-relaxed">
+          {item.desc}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>
           </div>
         </section>
 
@@ -94,45 +149,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10 lg:mb-20">
-              <div>
-                <p className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6">
-                  PORTFOLIO
-                </p>
-
-                <h2 className="text-4xl lg:text-6xl font-bold">
-                  제조 사례
-                </h2>
-              </div>
-
-              <a href="/portfolio" className="text-lg lg:text-2xl font-semibold">
-                VIEW MORE →
-              </a>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
-              {["스킨케어", "앰플", "크림", "클렌징폼"].map((item) => (
-                <div key={item} className="bg-white">
-                  <div className="h-[180px] lg:h-[360px] bg-gray-200 flex items-center justify-center text-lg lg:text-2xl text-gray-500">
-                    IMAGE
-                  </div>
-
-                  <div className="p-4 lg:p-8">
-                    <h3 className="text-xl lg:text-3xl font-bold mb-2 lg:mb-3">
-                      {item}
-                    </h3>
-
-                    <p className="text-sm lg:text-xl text-gray-600">
-                      OEM / ODM 제조 사례
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+       <HomePortfolio />
 
         <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-black text-white">
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-0 items-start lg:items-center justify-between">
