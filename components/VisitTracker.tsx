@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   addDoc,
@@ -14,13 +14,22 @@ import { db } from "@/lib/firebase";
 
 export default function VisitTracker() {
   const pathname = usePathname();
+  const trackedRef = useRef(false);
 
   useEffect(() => {
     if (!pathname) return;
-    if (pathname.startsWith("/admin")) return;
+
+    // 관리자 페이지는 절대 카운트 안 함
+    if (pathname === "/admin" || pathname.startsWith("/admin/")) return;
+
+    // 개발 모드에서 중복 실행 방지
+    if (trackedRef.current) return;
+    trackedRef.current = true;
 
     const trackVisit = async () => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString("sv-SE", {
+        timeZone: "Asia/Seoul",
+      });
 
       await addDoc(collection(db, "visits"), {
         path: pathname,

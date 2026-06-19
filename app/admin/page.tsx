@@ -96,7 +96,9 @@ const [
     loadDashboard();
   }, []);
 
-  const today = new Date().toISOString().slice(0, 10);
+ const today = new Date().toLocaleDateString("sv-SE", {
+  timeZone: "Asia/Seoul",
+});
 
   const todayVisit = useMemo(() => {
     return visitStats.find((item) => item.date === today)?.total || 0;
