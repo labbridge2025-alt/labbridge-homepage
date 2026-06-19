@@ -84,11 +84,11 @@ export default function ProductsAdminPage() {
   }, []);
 
   const toggleTag = (tag: string) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter((item) => item !== tag));
-    } else {
-      setTags([...tags, tag]);
-    }
+    setTags((prev) =>
+      prev.includes(tag)
+        ? prev.filter((item) => item !== tag)
+        : [...prev, tag]
+    );
   };
 
   const resetForm = () => {
@@ -196,337 +196,300 @@ export default function ProductsAdminPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#f4f6f8] flex">
-      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
-        <h1 className="text-xl font-bold">LABBRIDGE</h1>
-        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
+    <div>
+      <h1 className="mb-8 text-4xl font-bold">상품 관리</h1>
 
-        <nav className="space-y-2 flex-1">
-          {[
-            ["대시보드", "/admin"],
-            ["문의 관리", "/admin/inquiries"],
-            ["가이드 배너", "/admin/guide"],
-            ["포트폴리오", "/admin/portfolio"],
-            ["팝업 관리", "/admin/popup"],
-            ["상품 관리", "/admin/products"],
-          ].map(([menuName, href]) => (
-            <a
-              key={menuName}
-              href={href}
-              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
-                href === "/admin/products"
-                  ? "bg-blue-600"
-                  : "text-gray-300 hover:bg-white/10"
-              }`}
-            >
-              {menuName}
-            </a>
-          ))}
-        </nav>
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_1.2fr]">
+        <div className="rounded-2xl border bg-white p-8 shadow-sm">
+          <h2 className="mb-6 text-2xl font-bold">
+            {editingId ? "상품 수정" : "상품 등록"}
+          </h2>
 
-        <a
-          href="/"
-          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
-        >
-          사이트 이동 →
-        </a>
-      </aside>
+          <label className="mb-2 block font-bold">상품명</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 가지클레이 팩클렌저"
+          />
 
-      <section className="flex-1 p-6 lg:p-10">
-        <h1 className="text-4xl font-bold mb-8">상품 관리</h1>
+          <label className="mb-2 block font-bold">카테고리</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+          >
+            {categoryOptions.map((cat) => (
+              <option key={cat}>{cat}</option>
+            ))}
+          </select>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-8">
-          <div className="bg-white border rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold mb-6">
-              {editingId ? "상품 수정" : "상품 등록"}
-            </h2>
+          <label className="mb-2 block font-bold">MOQ</label>
+          <input
+            value={moq}
+            onChange={(e) => setMoq(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 3000"
+          />
 
-            <label className="block font-bold mb-2">상품명</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 가지클레이 팩클렌저"
-            />
+          <label className="mb-2 block font-bold">소비자 g당 단가</label>
+          <input
+            value={unitPrice}
+            onChange={(e) => setUnitPrice(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 52"
+          />
 
-            <label className="block font-bold mb-2">카테고리</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-            >
-              {categoryOptions.map((cat) => (
-                <option key={cat}>{cat}</option>
-              ))}
-            </select>
+          <label className="mb-2 block font-bold">내부 g당 원가</label>
+          <input
+            value={costPrice}
+            onChange={(e) => setCostPrice(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 38"
+          />
 
-            <label className="block font-bold mb-2">MOQ</label>
-            <input
-              value={moq}
-              onChange={(e) => setMoq(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 3000"
-            />
-
-            <label className="block font-bold mb-2">소비자 g당 단가</label>
-            <input
-              value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 52"
-            />
-
-            <label className="block font-bold mb-2">내부 g당 원가</label>
-            <input
-              value={costPrice}
-              onChange={(e) => setCostPrice(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 38"
-            />
-
-            <label className="block font-bold mb-2">제품 태그</label>
-            <div className="flex flex-wrap gap-2 mb-5">
-              {tagOptions.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className={`px-4 py-2 rounded-lg border text-sm font-bold ${
-                    tags.includes(tag)
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600"
-                  }`}
-                >
-                  #{tag}
-                </button>
-              ))}
-            </div>
-
-            <label className="block font-bold mb-2">제조사명</label>
-            <input
-              value={manufacturer}
-              onChange={(e) => setManufacturer(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 동방코스메틱"
-            />
-
-            <label className="block font-bold mb-2">랩넘버</label>
-            <input
-              value={labNumber}
-              onChange={(e) => setLabNumber(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: LB-2405-001"
-            />
-
-            <label className="block font-bold mb-2">담당자</label>
-            <input
-              value={managerName}
-              onChange={(e) => setManagerName(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 김민지"
-            />
-
-            <label className="block font-bold mb-2">담당자 연락처</label>
-            <input
-              value={managerPhone}
-              onChange={(e) => setManagerPhone(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 010-0000-0000"
-            />
-
-            <label className="block font-bold mb-2">상품 이미지</label>
-            <label className="mb-6 flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="미리보기"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              ) : (
-                <>
-                  <span className="text-3xl mb-2">＋</span>
-                  <span className="font-bold">이미지 업로드</span>
-                  <span className="text-sm text-gray-500 mt-2">
-                    PNG, JPG 파일 선택
-                  </span>
-                </>
-              )}
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const selectedFile = e.target.files?.[0] || null;
-                  setFile(selectedFile);
-
-                  if (selectedFile) {
-                    setPreview(URL.createObjectURL(selectedFile));
-                  }
-                }}
-                className="hidden"
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={saveProduct}
-              className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold"
-            >
-              {editingId ? "수정 저장" : "저장"}
-            </button>
-
-            {editingId && (
+          <label className="mb-2 block font-bold">제품 태그</label>
+          <div className="mb-5 flex flex-wrap gap-2">
+            {tagOptions.map((tag) => (
               <button
+                key={tag}
                 type="button"
-                onClick={resetForm}
-                className="mt-3 w-full border py-4 rounded-xl font-bold"
+                onClick={() => toggleTag(tag)}
+                className={`rounded-lg border px-4 py-2 text-sm font-bold ${
+                  tags.includes(tag)
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600"
+                }`}
               >
-                수정 취소
+                #{tag}
               </button>
-            )}
+            ))}
           </div>
 
-          <div className="bg-white border rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold mb-6">등록된 상품</h2>
+          <label className="mb-2 block font-bold">제조사명</label>
+          <input
+            value={manufacturer}
+            onChange={(e) => setManufacturer(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 동방코스메틱"
+          />
 
-            <div className="flex gap-2 mb-6 flex-wrap">
-              {["전체", ...categoryOptions].map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setFilterCategory(cat);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-4 py-2 rounded-lg border text-sm font-bold ${
-                    filterCategory === cat
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+          <label className="mb-2 block font-bold">랩넘버</label>
+          <input
+            value={labNumber}
+            onChange={(e) => setLabNumber(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: LB-2405-001"
+          />
 
-            <div className="space-y-4">
-              {pagedItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between border rounded-xl p-4 gap-4"
-                >
-                  <div className="flex gap-4 items-center">
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-20 h-20 object-cover rounded-xl border"
-                      />
+          <label className="mb-2 block font-bold">담당자</label>
+          <input
+            value={managerName}
+            onChange={(e) => setManagerName(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 김민지"
+          />
+
+          <label className="mb-2 block font-bold">담당자 연락처</label>
+          <input
+            value={managerPhone}
+            onChange={(e) => setManagerPhone(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 010-0000-0000"
+          />
+
+          <label className="mb-2 block font-bold">상품 이미지</label>
+          <label className="mb-6 flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
+            {preview ? (
+              <img
+                src={preview}
+                alt="미리보기"
+                className="h-full w-full rounded-2xl object-cover"
+              />
+            ) : (
+              <>
+                <span className="mb-2 text-3xl">＋</span>
+                <span className="font-bold">이미지 업로드</span>
+                <span className="mt-2 text-sm text-gray-500">
+                  PNG, JPG 파일 선택
+                </span>
+              </>
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const selectedFile = e.target.files?.[0] || null;
+                setFile(selectedFile);
+
+                if (selectedFile) {
+                  setPreview(URL.createObjectURL(selectedFile));
+                }
+              }}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={saveProduct}
+            className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white"
+          >
+            {editingId ? "수정 저장" : "저장"}
+          </button>
+
+          {editingId && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="mt-3 w-full rounded-xl border py-4 font-bold"
+            >
+              수정 취소
+            </button>
+          )}
+        </div>
+
+        <div className="rounded-2xl border bg-white p-8 shadow-sm">
+          <h2 className="mb-6 text-2xl font-bold">등록된 상품</h2>
+
+          <div className="mb-6 flex flex-wrap gap-2">
+            {["전체", ...categoryOptions].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  setFilterCategory(cat);
+                  setCurrentPage(1);
+                }}
+                className={`rounded-lg border px-4 py-2 text-sm font-bold ${
+                  filterCategory === cat
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {pagedItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-4 rounded-xl border p-4"
+              >
+                <div className="flex items-center gap-4">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-20 w-20 rounded-xl border object-cover"
+                    />
+                  )}
+
+                  <div>
+                    <h3 className="text-xl font-bold">{item.name}</h3>
+                    <p className="text-sm text-gray-500">{item.category}</p>
+                    <p className="text-sm text-gray-500">MOQ {item.moq}</p>
+                    <p className="text-sm text-gray-500">
+                      소비자 단가 {item.unitPrice}원
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      내부 원가 {item.costPrice}원
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      제조사 {item.manufacturer || "-"} / 랩넘버{" "}
+                      {item.labNumber || "-"}
+                    </p>
+
+                    {item.tags?.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {item.tags.map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border px-2 py-1 text-xs text-blue-600"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
                     )}
-
-                    <div>
-                      <h3 className="text-xl font-bold">{item.name}</h3>
-                      <p className="text-sm text-gray-500">{item.category}</p>
-                      <p className="text-gray-500 text-sm">MOQ {item.moq}</p>
-                      <p className="text-gray-500 text-sm">
-                        소비자 단가 {item.unitPrice}원
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        내부 원가 {item.costPrice}원
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        제조사 {item.manufacturer || "-"} / 랩넘버{" "}
-                        {item.labNumber || "-"}
-                      </p>
-
-                      {item.tags?.length > 0 && (
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          {item.tags.map((tag: string) => (
-                            <span
-                              key={tag}
-                              className="text-xs border rounded-full px-2 py-1 text-blue-600"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(item)}
-                      className="px-4 py-2 border rounded-lg"
-                    >
-                      수정
-                    </button>
-
-                    <a
-                      href={`/admin/products/${item.id}`}
-                      className="px-4 py-2 bg-black text-white rounded-lg"
-                    >
-                      상세관리
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteProduct(item.id)}
-                      className="px-4 py-2 border rounded-lg text-red-500"
-                    >
-                      삭제
-                    </button>
                   </div>
                 </div>
-              ))}
 
-              {pagedItems.length === 0 && (
-                <div className="border rounded-xl p-10 text-center text-gray-500">
-                  등록된 상품이 없습니다.
-                </div>
-              )}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="mt-8 flex justify-center items-center gap-2">
-                <button
-                  type="button"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-40"
-                >
-                  이전
-                </button>
-
-                {Array.from({ length: totalPages }).map((_, index) => (
+                <div className="flex shrink-0 gap-2">
                   <button
-                    key={index}
                     type="button"
-                    onClick={() => setCurrentPage(index + 1)}
-                    className={`px-4 py-2 border rounded-lg ${
-                      currentPage === index + 1
-                        ? "bg-blue-600 text-white"
-                        : "bg-white"
-                    }`}
+                    onClick={() => startEdit(item)}
+                    className="rounded-lg border px-4 py-2"
                   >
-                    {index + 1}
+                    수정
                   </button>
-                ))}
 
-                <button
-                  type="button"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className="px-4 py-2 border rounded-lg disabled:opacity-40"
-                >
-                  다음
-                </button>
+                  <a
+                    href={`/admin/products/${item.id}`}
+                    className="rounded-lg bg-black px-4 py-2 text-white"
+                  >
+                    상세관리
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => deleteProduct(item.id)}
+                    className="rounded-lg border px-4 py-2 text-red-500"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {pagedItems.length === 0 && (
+              <div className="rounded-xl border p-10 text-center text-gray-500">
+                등록된 상품이 없습니다.
               </div>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className="rounded-lg border px-4 py-2 disabled:opacity-40"
+              >
+                이전
+              </button>
+
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`rounded-lg border px-4 py-2 ${
+                    currentPage === index + 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-white"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="rounded-lg border px-4 py-2 disabled:opacity-40"
+              >
+                다음
+              </button>
+            </div>
+          )}
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

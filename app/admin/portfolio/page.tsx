@@ -72,7 +72,6 @@ export default function PortfolioAdminPage() {
 
     if (file) {
       const fileRef = ref(storage, `portfolio/${Date.now()}-${file.name}`);
-
       await uploadBytes(fileRef, file);
       imageUrl = await getDownloadURL(fileRef);
     }
@@ -111,198 +110,161 @@ export default function PortfolioAdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f6f8] flex">
-      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
-        <h1 className="text-xl font-bold">LABBRIDGE</h1>
-        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
+    <div>
+      <h1 className="mb-8 text-4xl font-bold">포트폴리오 관리</h1>
 
-        <nav className="space-y-2 flex-1">
-          {[
-            ["대시보드", "/admin"],
-            ["문의 관리", "/admin/inquiries"],
-            ["가이드 배너", "/admin/guide"],
-            ["포트폴리오", "/admin/portfolio"],
-            ["팝업 관리", "/admin/popup"],
-            ["상품 관리", "/admin/products"],
-          ].map(([name, href]) => (
-            <a
-              key={name}
-              href={href}
-              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
-                href === "/admin/portfolio"
-                  ? "bg-blue-600"
-                  : "text-gray-300 hover:bg-white/10"
-              }`}
-            >
-              {name}
-            </a>
-          ))}
-        </nav>
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1fr_1.2fr]">
+        <div className="rounded-2xl border bg-white p-8 shadow-sm">
+          <h2 className="mb-6 text-2xl font-bold">
+            {editingId ? "포트폴리오 수정" : "포트폴리오 등록"}
+          </h2>
 
-        <a
-          href="/"
-          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
-        >
-          사이트 이동 →
-        </a>
-      </aside>
+          <label className="mb-2 block font-bold">브랜드명</label>
+          <input
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: REBALAN"
+          />
 
-      <section className="flex-1 p-6 lg:p-10">
-        <h1 className="text-4xl font-bold mb-8">포트폴리오 관리</h1>
+          <label className="mb-2 block font-bold">제품명</label>
+          <input
+            value={product}
+            onChange={(e) => setProduct(e.target.value)}
+            className="mb-5 w-full rounded-xl border px-4 py-3"
+            placeholder="예: 아이백 크림"
+          />
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-8">
-          <div className="bg-white border rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold mb-6">
-              {editingId ? "포트폴리오 수정" : "포트폴리오 등록"}
-            </h2>
+          <label className="mb-2 block font-bold">설명</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="mb-6 h-32 w-full rounded-xl border px-4 py-3"
+            placeholder="제품 설명을 입력해주세요"
+          />
 
-            <label className="block font-bold mb-2">브랜드명</label>
-            <input
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: REBALAN"
-            />
+          <label className="mb-2 block font-bold">포트폴리오 이미지</label>
 
-            <label className="block font-bold mb-2">제품명</label>
-            <input
-              value={product}
-              onChange={(e) => setProduct(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 mb-5"
-              placeholder="예: 아이백 크림"
-            />
-
-            <label className="block font-bold mb-2">설명</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full border rounded-xl px-4 py-3 h-32 mb-6"
-              placeholder="제품 설명을 입력해주세요"
-            />
-
-            <label className="block font-bold mb-2">포트폴리오 이미지</label>
-
-            <label className="mb-6 flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
-              {preview ? (
-                <img
-                  src={preview}
-                  alt="미리보기"
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-              ) : (
-                <>
-                  <span className="text-3xl mb-2">＋</span>
-                  <span className="font-bold">이미지 업로드</span>
-                  <span className="text-sm text-gray-500 mt-2">
-                    PNG, JPG 파일 선택
-                  </span>
-                </>
-              )}
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const selectedFile = e.target.files?.[0] || null;
-                  setFile(selectedFile);
-
-                  if (selectedFile) {
-                    setPreview(URL.createObjectURL(selectedFile));
-                  }
-                }}
-                className="hidden"
+          <label className="mb-6 flex h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
+            {preview ? (
+              <img
+                src={preview}
+                alt="미리보기"
+                className="h-full w-full rounded-2xl object-cover"
               />
-            </label>
-
-            {file && (
-              <p className="mb-6 text-sm text-blue-600">
-                선택된 파일: {file.name}
-              </p>
+            ) : (
+              <>
+                <span className="mb-2 text-3xl">＋</span>
+                <span className="font-bold">이미지 업로드</span>
+                <span className="mt-2 text-sm text-gray-500">
+                  PNG, JPG 파일 선택
+                </span>
+              </>
             )}
 
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const selectedFile = e.target.files?.[0] || null;
+                setFile(selectedFile);
+
+                if (selectedFile) {
+                  setPreview(URL.createObjectURL(selectedFile));
+                }
+              }}
+              className="hidden"
+            />
+          </label>
+
+          {file && (
+            <p className="mb-6 text-sm text-blue-600">
+              선택된 파일: {file.name}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={savePortfolio}
+            className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white"
+          >
+            {editingId ? "수정 저장" : "저장"}
+          </button>
+
+          {editingId && (
             <button
               type="button"
-              onClick={savePortfolio}
-              className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold"
+              onClick={() => {
+                setBrand("");
+                setProduct("");
+                setDescription("");
+                setFile(null);
+                setPreview("");
+                setEditingId("");
+                setEditingImage("");
+              }}
+              className="mt-3 w-full rounded-xl border py-4 font-bold"
             >
-              {editingId ? "수정 저장" : "저장"}
+              수정 취소
             </button>
+          )}
+        </div>
 
-            {editingId && (
-              <button
-                type="button"
-                onClick={() => {
-                  setBrand("");
-                  setProduct("");
-                  setDescription("");
-                  setFile(null);
-                  setPreview("");
-                  setEditingId("");
-                  setEditingImage("");
-                }}
-                className="mt-3 w-full border py-4 rounded-xl font-bold"
+        <div className="rounded-2xl border bg-white p-8 shadow-sm">
+          <h2 className="mb-6 text-2xl font-bold">등록된 포트폴리오</h2>
+
+          <div className="space-y-4">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between gap-4 rounded-xl border p-4"
               >
-                수정 취소
-              </button>
+                <div className="flex items-center gap-4">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.product}
+                      className="h-20 w-20 rounded-xl border object-cover"
+                    />
+                  )}
+
+                  <div>
+                    <h3 className="text-xl font-bold">{item.brand}</h3>
+                    <p>{item.product}</p>
+                    <p className="text-sm text-gray-500">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(item)}
+                    className="rounded-lg border px-4 py-2"
+                  >
+                    수정
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => deletePortfolio(item.id)}
+                    className="rounded-lg border px-4 py-2 text-red-500"
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {items.length === 0 && (
+              <div className="rounded-xl border p-10 text-center text-gray-500">
+                등록된 포트폴리오가 없습니다.
+              </div>
             )}
           </div>
-
-          <div className="bg-white border rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl font-bold mb-6">등록된 포트폴리오</h2>
-
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between border rounded-xl p-4 gap-4"
-                >
-                  <div className="flex gap-4 items-center">
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.product}
-                        className="w-20 h-20 object-cover rounded-xl border"
-                      />
-                    )}
-
-                    <div>
-                      <h3 className="text-xl font-bold">{item.brand}</h3>
-                      <p>{item.product}</p>
-                      <p className="text-gray-500 text-sm">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(item)}
-                      className="px-4 py-2 border rounded-lg"
-                    >
-                      수정
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deletePortfolio(item.id)}
-                      className="px-4 py-2 border rounded-lg text-red-500"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {items.length === 0 && (
-                <div className="border rounded-xl p-10 text-center text-gray-500">
-                  등록된 포트폴리오가 없습니다.
-                </div>
-              )}
-            </div>
-          </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }

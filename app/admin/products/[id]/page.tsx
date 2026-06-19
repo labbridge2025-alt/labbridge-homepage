@@ -17,8 +17,11 @@ export default function ProductDetailAdminPage() {
   const [mainIngredients, setMainIngredients] = useState("");
   const [howToUse, setHowToUse] = useState("");
 
-  const [availableFunctionalTypes, setAvailableFunctionalTypes] = useState<string[]>([]);
-  const [conceptIngredientAvailable, setConceptIngredientAvailable] = useState(false);
+  const [availableFunctionalTypes, setAvailableFunctionalTypes] = useState<
+    string[]
+  >([]);
+  const [conceptIngredientAvailable, setConceptIngredientAvailable] =
+    useState(false);
   const [sampleAvailable, setSampleAvailable] = useState(true);
 
   const availableFunctionalOptions = [
@@ -77,23 +80,44 @@ export default function ProductDetailAdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex">
-      <aside className="w-72 bg-[#0f1b2d] text-white p-6">
-        <h1 className="text-2xl font-bold mb-1">LABBRIDGE</h1>
-        <p className="text-sm text-gray-400 mb-10">ADMIN</p>
+    <main className="min-h-screen bg-[#f4f6f8] flex">
+      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
+        <h1 className="text-xl font-bold">LABBRIDGE</h1>
+        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
 
-        <nav className="space-y-2">
-          <a href="/admin" className="block px-5 py-4 rounded-xl text-gray-300 hover:bg-white/10">
-            대시보드
-          </a>
-          <a href="/admin/products" className="block px-5 py-4 rounded-xl bg-blue-600 text-white font-bold">
-            상품 관리
-          </a>
+        <nav className="space-y-2 flex-1">
+          {[
+            ["대시보드", "/admin"],
+            ["문의 관리", "/admin/inquiries"],
+            ["가이드 배너", "/admin/guide"],
+            ["포트폴리오", "/admin/portfolio"],
+            ["팝업 관리", "/admin/popup"],
+            ["상품 관리", "/admin/products"],
+          ].map(([name, href]) => (
+            <a
+              key={name}
+              href={href}
+              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
+                href === "/admin/products"
+                  ? "bg-blue-600"
+                  : "text-gray-300 hover:bg-white/10"
+              }`}
+            >
+              {name}
+            </a>
+          ))}
         </nav>
+
+        <a
+          href="/"
+          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
+        >
+          사이트 이동 →
+        </a>
       </aside>
 
-      <section className="flex-1 p-10">
-        <div className="flex justify-between items-center mb-8">
+      <section className="flex-1 p-6 lg:p-10">
+        <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-5 mb-8">
           <div className="flex items-center gap-5">
             {productImage && (
               <img

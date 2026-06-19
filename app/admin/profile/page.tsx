@@ -4,7 +4,6 @@ import { useState } from "react";
 import { updatePassword, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
-import AdminSidebar from "@/components/AdminSidebar";
 import { useAdminUser } from "@/hooks/useAdminUser";
 
 export default function AdminProfilePage() {
@@ -40,7 +39,6 @@ export default function AdminProfilePage() {
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] flex">
-      <AdminSidebar permissions={adminUser.permissions} />
 
       <section className="flex-1 p-6 lg:p-10">
         <div className="max-w-2xl bg-white border rounded-2xl p-8">
