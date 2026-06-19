@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import AdminSidebar from "@/components/AdminSidebar";
+import { useAdminUser } from "@/hooks/useAdminUser";
 
 type Inquiry = {
   id: string;
@@ -16,16 +18,8 @@ type Inquiry = {
   createdAt?: any;
 };
 
-const sideMenus = [
-  ["대시보드", "/admin"],
-  ["문의 관리", "/admin/inquiries"],
-  ["가이드 배너", "/admin/guide"],
-  ["포트폴리오", "/admin/portfolio"],
-  ["팝업 관리", "/admin/popup"],
-  ["상품 관리", "/admin/products"],
-];
-
 export default function AdminPage() {
+  const { adminUser, loading } = useAdminUser();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   useEffect(() => {
@@ -49,38 +43,27 @@ export default function AdminPage() {
     loadInquiries();
   }, []);
 
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        불러오는 중...
+      </main>
+    );
+  }
+
+  if (!adminUser) return null;
+
   return (
     <main className="min-h-screen bg-[#f4f6f8] flex">
-      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
-        <h1 className="text-xl font-bold">LABBRIDGE</h1>
-        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
-
-        <nav className="space-y-2 flex-1">
-          {sideMenus.map(([name, href], index) => (
-            <a
-              key={name}
-              href={href}
-              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
-                index === 0 ? "bg-blue-600" : "text-gray-300 hover:bg-white/10"
-              }`}
-            >
-              {name}
-            </a>
-          ))}
-        </nav>
-
-        <a
-          href="/"
-          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
-        >
-          사이트 이동 →
-        </a>
-      </aside>
+      <AdminSidebar
+  permissions={adminUser.permissions}
+  role={adminUser.role}
+/>
 
       <section className="flex-1 p-6 lg:p-10">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">대시보드</h2>
-          <p className="text-sm text-gray-500">관리자</p>
+          <p className="text-sm text-gray-500">{adminUser.name} 님</p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -91,17 +74,23 @@ export default function AdminPage() {
           />
           <DashboardBox
             title="신규 문의"
-            value={`${inquiries.filter((i) => !i.status || i.status === "신규").length}건`}
+            value={`${
+              inquiries.filter((i) => !i.status || i.status === "신규").length
+            }건`}
             desc="확인 필요"
           />
           <DashboardBox
             title="상담중"
-            value={`${inquiries.filter((i) => i.status === "상담중").length}건`}
+            value={`${
+              inquiries.filter((i) => i.status === "상담중").length
+            }건`}
             desc="진행중인 문의"
           />
           <DashboardBox
             title="견적발송"
-            value={`${inquiries.filter((i) => i.status === "견적발송").length}건`}
+            value={`${
+              inquiries.filter((i) => i.status === "견적발송").length
+            }건`}
             desc="견적 발송 완료"
           />
         </div>
@@ -148,42 +137,58 @@ export default function AdminPage() {
           <AdminCard title="바로가기">
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["가이드 배너", "/admin/guide"],
-                ["포트폴리오", "/admin/portfolio"],
-                ["팝업 관리", "/admin/popup"],
-                ["문의 내역", "/admin/inquiries"],
-                ["상품 관리", "/admin/products"],
-                ["사이트 보기", "/"],
-              ].map(([name, href]) => (
-                <a
-                  key={name}
-                  href={href}
-                  className="border rounded-xl px-4 py-5 font-semibold hover:bg-black hover:text-white transition"
-                >
-                  {name} →
-                </a>
-              ))}
+                ["가이드 배너", "/admin/guide", "guide"],
+                ["포트폴리오", "/admin/portfolio", "portfolio"],
+                ["팝업 관리", "/admin/popup", "popup"],
+                ["문의 내역", "/admin/inquiries", "inquiries"],
+                ["상품 관리", "/admin/products", "products"],
+                ["직원 관리", "/admin/users", "users"],
+              ]
+                .filter(([, , permission]) => {
+                  return adminUser.permissions?.[permission as keyof typeof adminUser.permissions];
+                })
+                .map(([name, href]) => (
+                  <a
+                    key={name}
+                    href={href}
+                    className="border rounded-xl px-4 py-5 font-semibold hover:bg-black hover:text-white transition"
+                  >
+                    {name} →
+                  </a>
+                ))}
             </div>
           </AdminCard>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <AdminCard title="디자인 관리">
-            <ManageRow title="가이드 배너" desc="메인 슬라이드 관리" href="/admin/guide" />
-            <ManageRow title="팝업 관리" desc="팝업 이미지 및 링크" href="/admin/popup" />
-            <ManageRow title="포트폴리오" desc="브랜드 사례 등록" href="/admin/portfolio" />
+            {adminUser.permissions?.guide && (
+              <ManageRow title="가이드 배너" desc="메인 슬라이드 관리" href="/admin/guide" />
+            )}
+            {adminUser.permissions?.popup && (
+              <ManageRow title="팝업 관리" desc="팝업 이미지 및 링크" href="/admin/popup" />
+            )}
+            {adminUser.permissions?.portfolio && (
+              <ManageRow title="포트폴리오" desc="브랜드 사례 등록" href="/admin/portfolio" />
+            )}
           </AdminCard>
 
           <AdminCard title="콘텐츠 관리">
-            <ManageRow title="상품 관리" desc="제형/제품 리스트" href="/admin/products" />
+            {adminUser.permissions?.products && (
+              <ManageRow title="상품 관리" desc="제형/제품 리스트" href="/admin/products" />
+            )}
             <ManageRow title="게시판 관리" desc="공지사항/가이드" href="/admin/boards" />
             <ManageRow title="페이지 관리" desc="회사소개/진행절차" href="/admin/pages" />
           </AdminCard>
 
           <AdminCard title="고객 관리">
-            <ManageRow title="문의 관리" desc="견적 문의 확인" href="/admin/inquiries" />
-            <ManageRow title="회원 관리" desc="가입 회원 관리" href="/admin/users" />
-            <ManageRow title="설정" desc="사이트 기본 설정" href="/admin/settings" />
+            {adminUser.permissions?.inquiries && (
+              <ManageRow title="문의 관리" desc="견적 문의 확인" href="/admin/inquiries" />
+            )}
+            {adminUser.permissions?.users && (
+              <ManageRow title="직원 관리" desc="직원 권한 설정" href="/admin/users" />
+            )}
+            <ManageRow title="내 정보" desc="비밀번호 변경" href="/admin/profile" />
           </AdminCard>
         </div>
       </section>
@@ -228,7 +233,6 @@ function AdminCard({
           </a>
         )}
       </div>
-
       {children}
     </div>
   );

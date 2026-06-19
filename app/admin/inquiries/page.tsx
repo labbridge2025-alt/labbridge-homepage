@@ -29,6 +29,13 @@ type Inquiry = {
   adminMemo?: string;
   status?: string;
   createdAt?: any;
+  assignedTo?: string;
+};
+
+type Staff = {
+  id: string;
+  name?: string;
+  email?: string;
 };
 
 const statuses = ["전체", "신규", "상담중", "견적발송", "계약완료"];
@@ -39,6 +46,7 @@ export default function AdminInquiriesPage() {
   const [statusFilter, setStatusFilter] = useState("전체");
   const [search, setSearch] = useState("");
   const [adminMemo, setAdminMemo] = useState("");
+  const [staffs, setStaffs] = useState<Staff[]>([]);
 
   const loadInquiries = async () => {
     const q = query(collection(db, "inquiries"), orderBy("createdAt", "desc"));
@@ -52,8 +60,20 @@ export default function AdminInquiriesPage() {
     setItems(data);
   };
 
+  const loadStaffs = async () => {
+    const snapshot = await getDocs(collection(db, "users"));
+
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Staff, "id">),
+    }));
+
+    setStaffs(data);
+  };
+
   useEffect(() => {
     loadInquiries();
+    loadStaffs();
   }, []);
 
   const filteredItems = useMemo(() => {
@@ -80,7 +100,6 @@ export default function AdminInquiriesPage() {
 
   const changeStatus = async (id: string, status: string) => {
     await updateDoc(doc(db, "inquiries", id), { status });
-
     await loadInquiries();
 
     if (selected?.id === id) {
@@ -99,6 +118,21 @@ export default function AdminInquiriesPage() {
     setSelected({ ...selected, adminMemo });
 
     alert("관리자 메모가 저장되었습니다.");
+  };
+
+  const assignStaff = async (inquiryId: string, staffName: string) => {
+    await updateDoc(doc(db, "inquiries", inquiryId), {
+      assignedTo: staffName,
+    });
+
+    await loadInquiries();
+
+    if (selected) {
+      setSelected({
+        ...selected,
+        assignedTo: staffName,
+      });
+    }
   };
 
   const deleteInquiry = async (id: string) => {
@@ -196,6 +230,7 @@ export default function AdminInquiriesPage() {
                   <th className="py-4 px-3 text-left">담당자</th>
                   <th className="py-4 px-3 text-left">연락처</th>
                   <th className="py-4 px-3 text-left">상태</th>
+                  <th className="py-4 px-3 text-left">담당 직원</th>
                   <th className="py-4 px-3 text-left">출고희망일</th>
                   <th className="py-4 px-3 text-left">제형</th>
                   <th className="py-4 px-3 text-left">용기</th>
@@ -219,6 +254,7 @@ export default function AdminInquiriesPage() {
                     <td className="py-4 px-3">
                       <StatusBadge status={item.status || "신규"} />
                     </td>
+                    <td className="py-4 px-3">{item.assignedTo || "-"}</td>
                     <td className="py-4 px-3">{item.dueDate || "-"}</td>
                     <td className="py-4 px-3">{item.formula || "-"}</td>
                     <td className="py-4 px-3">{item.container || "-"}</td>
@@ -288,6 +324,24 @@ export default function AdminInquiriesPage() {
                 <p className="text-gray-600 whitespace-pre-line">
                   {selected.memo || "-"}
                 </p>
+              </div>
+
+              <div className="border-t pt-5">
+                <p className="font-bold mb-3">담당 직원</p>
+
+                <select
+                  value={selected.assignedTo || ""}
+                  onChange={(e) => assignStaff(selected.id, e.target.value)}
+                  className="w-full border rounded-xl px-4 py-3"
+                >
+                  <option value="">담당자 선택</option>
+
+                  {staffs.map((staff) => (
+                    <option key={staff.id} value={staff.name || staff.email || ""}>
+                      {staff.name || staff.email || "이름 없음"}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="border-t pt-5">

@@ -196,31 +196,46 @@ export default function ProductsAdminPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 flex">
-      <aside className="w-72 bg-[#0f1b2d] text-white p-6">
-        <h1 className="text-2xl font-bold mb-1">LABBRIDGE</h1>
-        <p className="text-sm text-gray-400 mb-10">ADMIN</p>
+    <main className="min-h-screen bg-[#f4f6f8] flex">
+      <aside className="w-64 bg-[#0f172a] text-white p-6 hidden lg:flex flex-col">
+        <h1 className="text-xl font-bold">LABBRIDGE</h1>
+        <p className="text-xs text-gray-400 mb-10">ADMIN</p>
 
-        <nav className="space-y-2">
-          <a href="/admin" className="block px-5 py-4 rounded-xl text-gray-300 hover:bg-white/10">
-            대시보드
-          </a>
-          <a href="/admin/inquiries" className="block px-5 py-4 rounded-xl text-gray-300 hover:bg-white/10">
-            문의 관리
-          </a>
-          <a href="/admin/portfolio" className="block px-5 py-4 rounded-xl text-gray-300 hover:bg-white/10">
-            포트폴리오 관리
-          </a>
-          <a href="/admin/products" className="block px-5 py-4 rounded-xl bg-blue-600 text-white font-bold">
-            상품 관리
-          </a>
+        <nav className="space-y-2 flex-1">
+          {[
+            ["대시보드", "/admin"],
+            ["문의 관리", "/admin/inquiries"],
+            ["가이드 배너", "/admin/guide"],
+            ["포트폴리오", "/admin/portfolio"],
+            ["팝업 관리", "/admin/popup"],
+            ["상품 관리", "/admin/products"],
+          ].map(([menuName, href]) => (
+            <a
+              key={menuName}
+              href={href}
+              className={`block px-4 py-3 rounded-xl text-sm font-semibold ${
+                href === "/admin/products"
+                  ? "bg-blue-600"
+                  : "text-gray-300 hover:bg-white/10"
+              }`}
+            >
+              {menuName}
+            </a>
+          ))}
         </nav>
+
+        <a
+          href="/"
+          className="border border-white/20 rounded-xl px-4 py-3 text-sm text-gray-300 hover:bg-white/10"
+        >
+          사이트 이동 →
+        </a>
       </aside>
 
-      <section className="flex-1 p-10">
+      <section className="flex-1 p-6 lg:p-10">
         <h1 className="text-4xl font-bold mb-8">상품 관리</h1>
 
-        <div className="grid grid-cols-[1fr_1.2fr] gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.2fr] gap-8">
           <div className="bg-white border rounded-2xl p-8 shadow-sm">
             <h2 className="text-2xl font-bold mb-6">
               {editingId ? "상품 수정" : "상품 등록"}
@@ -398,7 +413,7 @@ export default function ProductsAdminPage() {
               {pagedItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between border rounded-xl p-4"
+                  className="flex items-center justify-between border rounded-xl p-4 gap-4"
                 >
                   <div className="flex gap-4 items-center">
                     {item.image && (
@@ -439,7 +454,7 @@ export default function ProductsAdminPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={() => startEdit(item)}
