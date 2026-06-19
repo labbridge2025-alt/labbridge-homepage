@@ -60,17 +60,15 @@ export default function AdminPage() {
 
     
 
-      const [
-        recentInquirySnap,
-        allInquirySnap,
-        visitSnap,
-
-      ] = await Promise.all([
-        getDocs(recentInquiryQuery),
-        getDocs(allInquiryQuery),
-        getDocs(visitQuery),
-        getDocs(pageQuery),
-      ]);
+const [
+  recentInquirySnap,
+  allInquirySnap,
+  visitSnap,
+] = await Promise.all([
+  getDocs(recentInquiryQuery),
+  getDocs(allInquiryQuery),
+  getDocs(visitQuery),
+]);
 
       setInquiries(
         recentInquirySnap.docs.map((doc) => ({
