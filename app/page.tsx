@@ -8,28 +8,50 @@ export default function Home() {
       <Header />
 
       <main>
-        <section className="min-h-screen flex items-center justify-center px-5 sm:px-8 lg:px-6 pt-24">
-          <div className="text-center">
-            <p className="mb-6 lg:mb-8 text-lg sm:text-xl lg:text-[28px] font-medium">
-              LABBRIDGE COSMETIC PLATFORM
-            </p>
+<section className="relative w-full pt-[86px]">
+  <img
+    src="/images/main-hero-new.png"
+    alt="LabBridge"
+    className="block h-auto w-full"
+  />
 
-            <h1 className="text-[64px] sm:text-[110px] lg:text-[220px] font-bold leading-none tracking-tight">
-              LABBRIDGE
-            </h1>
+  <div className="absolute left-8 top-[150px] z-10 sm:left-12 lg:left-20">
+    <p className="mb-6 text-base font-medium tracking-wide text-neutral-800 sm:text-lg lg:text-[22px]">
+      OEM/ODM SKINCARE SOLUTION
+    </p>
 
-            <p className="mt-8 lg:mt-12 text-2xl sm:text-3xl lg:text-[46px] font-medium">
-              화장품 제조의 시작부터 출시까지
-            </p>
+    <h1 className="mb-8 text-[44px] font-extrabold leading-[1.25] tracking-[-2px] text-neutral-900 sm:text-[58px] lg:text-[72px]">
+      화장품 제조의
+      <br />
+      시작부터 출시까지
+    </h1>
 
-            <a
-              href="/estimate"
-              className="mt-10 lg:mt-16 inline-block px-8 lg:px-20 py-4 lg:py-8 bg-black text-white rounded text-lg lg:text-[30px] font-semibold"
-            >
-              제조 문의하기
-            </a>
-          </div>
-        </section>
+    <p className="mb-9 text-base leading-[1.8] text-neutral-700 sm:text-lg lg:text-[22px]">
+      제형 개발부터 패키지, 생산, 인허가까지
+      <br />
+      원스톱 OEM/ODM 솔루션으로 브랜드의 성공을 함께 만듭니다.
+    </p>
+
+    <div className="flex flex-col gap-4 sm:flex-row">
+      <a
+        href="/estimate"
+        className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md bg-black text-[17px] font-semibold text-white"
+      >
+        제조 문의하기
+        <span>→</span>
+      </a>
+
+      <a
+        href="/portfolio"
+        className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md border border-neutral-500 bg-white/30 text-[17px] font-semibold text-neutral-900 backdrop-blur-sm"
+      >
+        포트폴리오 보기
+        <span>→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <GuideSlider />
         <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">

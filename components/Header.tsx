@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-
+import { Heart, User } from "lucide-react";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -43,23 +43,49 @@ const [authReady, setAuthReady] = useState(false);
           <a href="/process">진행절차</a>
           <a href="/portfolio">포트폴리오</a>
           <a href="/estimate">문의하기</a>
-        <a href="/wish">관심상품</a>
+          <a
+  href="/boards"
+  className="rounded-lg border border-black px-4 py-2 text-sm font-bold hover:bg-black hover:text-white transition"
+>
+  LAB MEMBERS
+</a>
+<div className="flex items-center gap-5">
+  <a href="/wish">
+    <Heart size={24} strokeWidth={2} />
+  </a>
 
-{authReady && (
-  <>
-    {userEmail ? (
-      <>
-        <a href="/mypage">내정보</a>
-        <button onClick={logout}>로그아웃</button>
-      </>
-    ) : (
-      <>
-        <a href="/login">로그인</a>
-        <a href="/signup">회원가입</a>
-      </>
-    )}
-  </>
-)}
+  {authReady && (
+    <>
+      {userEmail ? (
+        <div className="relative group">
+          <button>
+            <User size={24} strokeWidth={2} />
+          </button>
+
+          <div className="absolute right-0 top-full pt-2 w-40 rounded-xl border bg-white shadow-lg opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible">
+            <a
+              href="/mypage"
+              className="block px-4 py-3 hover:bg-gray-50"
+            >
+              내정보
+            </a>
+
+            <button
+              onClick={logout}
+              className="block w-full px-4 py-3 text-left hover:bg-gray-50"
+            >
+              로그아웃
+            </button>
+          </div>
+        </div>
+      ) : (
+        <a href="/login">
+          <User size={24} strokeWidth={2} />
+        </a>
+      )}
+    </>
+  )}
+</div>
         </nav>
 
         <button
