@@ -4,19 +4,25 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { Heart, User } from "lucide-react";
+import { Heart, User, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
-const [authReady, setAuthReady] = useState(false);
-  useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setUserEmail(user?.email || "");
-    setAuthReady(true);
-  });
+  const [authReady, setAuthReady] = useState(false);
 
-  return () => unsubscribe();
-}, []);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserEmail(user?.email || "");
+      setAuthReady(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const logout = async () => {
     await signOut(auth);
@@ -25,106 +31,147 @@ const [authReady, setAuthReady] = useState(false);
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white border-b border-gray-200 z-50">
-      <div className="h-24 px-6 lg:px-20 flex items-center justify-between">
-        <a href="/">
+    <header
+      className={`fixed left-0 top-0 z-50 w-full border-b border-gray-200 bg-white ${
+        isHome ? "hidden md:block" : "block"
+      }`}
+    >
+      <div className="flex h-24 items-center justify-between px-6 lg:px-20">
+        {/* 모바일 왼쪽 메뉴 */}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="lg:hidden"
+        >
+          <Menu size={34} strokeWidth={1.8} />
+        </button>
+
+        {/* 로고 */}
+        <a href="/" className="flex flex-1 justify-center lg:block lg:flex-none">
           <Image
             src="/logo.png"
             alt="LabBridge"
             width={180}
             height={60}
             priority
+            className="w-[155px] lg:w-[180px]"
           />
         </a>
 
-        <nav className="hidden lg:flex items-center gap-8 text-lg font-bold">
+        {/* PC 메뉴 */}
+        <nav className="hidden items-center gap-8 text-lg font-bold lg:flex">
           <a href="/about">회사소개</a>
           <a href="/products">제형보러가기</a>
           <a href="/process">진행절차</a>
           <a href="/portfolio">포트폴리오</a>
           <a href="/estimate">문의하기</a>
+
           <a
-  href="/boards"
-  className="rounded-lg border border-black px-4 py-2 text-sm font-bold hover:bg-black hover:text-white transition"
->
-  LAB MEMBERS
-</a>
-<div className="flex items-center gap-5">
-  <a href="/wish">
-    <Heart size={24} strokeWidth={2} />
-  </a>
+            href="/boards"
+            className="rounded-lg border border-black px-4 py-2 text-sm font-bold transition hover:bg-black hover:text-white"
+          >
+            LAB MEMBERS
+          </a>
 
-  {authReady && (
-    <>
-      {userEmail ? (
-        <div className="relative group">
-          <button>
-            <User size={24} strokeWidth={2} />
-          </button>
-
-          <div className="absolute right-0 top-full pt-2 w-40 rounded-xl border bg-white shadow-lg opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible">
-            <a
-              href="/mypage"
-              className="block px-4 py-3 hover:bg-gray-50"
-            >
-              내정보
+          <div className="flex items-center gap-5">
+            <a href="/wish">
+              <Heart size={24} strokeWidth={2} />
             </a>
 
-            <button
-              onClick={logout}
-              className="block w-full px-4 py-3 text-left hover:bg-gray-50"
-            >
-              로그아웃
-            </button>
+            {authReady && (
+              <>
+                {userEmail ? (
+                  <div className="relative group">
+                    <button className="py-2">
+                      <User size={24} strokeWidth={2} />
+                    </button>
+
+                    <div className="invisible absolute right-0 top-full w-40 rounded-xl border bg-white pt-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                      <a
+                        href="/mypage"
+                        className="block px-4 py-3 hover:bg-gray-50"
+                      >
+                        내정보
+                      </a>
+
+                      <button
+                        onClick={logout}
+                        className="block w-full px-4 py-3 text-left hover:bg-gray-50"
+                      >
+                        로그아웃
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <a href="/login">
+                    <User size={24} strokeWidth={2} />
+                  </a>
+                )}
+              </>
+            )}
           </div>
-        </div>
-      ) : (
-        <a href="/login">
-          <User size={24} strokeWidth={2} />
-        </a>
-      )}
-    </>
-  )}
-</div>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="lg:hidden text-4xl font-bold"
-        >
-          ☰
-        </button>
+        {/* 모바일 오른쪽 아이콘 */}
+        <div className="flex items-center gap-4 lg:hidden">
+          <a href="/wish">
+            <Heart size={27} strokeWidth={1.9} />
+          </a>
+
+          <a href={userEmail ? "/mypage" : "/login"}>
+            <User size={27} strokeWidth={1.9} />
+          </a>
+        </div>
       </div>
 
+      {/* 모바일 메뉴 */}
       {open && (
-        <div className="lg:hidden border-t bg-white px-6 py-6">
+        <div className="border-t bg-white px-6 py-6 lg:hidden">
           <nav className="flex flex-col gap-5 text-lg font-bold">
-            <a href="/about" onClick={() => setOpen(false)}>회사소개</a>
-            <a href="/products" onClick={() => setOpen(false)}>제형보러가기</a>
-            <a href="/process" onClick={() => setOpen(false)}>진행절차</a>
-            <a href="/portfolio" onClick={() => setOpen(false)}>포트폴리오</a>
-            <a href="/estimate" onClick={() => setOpen(false)}>문의하기</a>
-            <a href="/wish" onClick={() => setOpen(false)}>관심상품</a>
+            <a href="/about" onClick={() => setOpen(false)}>
+              회사소개
+            </a>
+            <a href="/products" onClick={() => setOpen(false)}>
+              제형보러가기
+            </a>
+            <a href="/process" onClick={() => setOpen(false)}>
+              진행절차
+            </a>
+            <a href="/portfolio" onClick={() => setOpen(false)}>
+              포트폴리오
+            </a>
+            <a href="/boards" onClick={() => setOpen(false)}>
+              LAB MEMBERS
+            </a>
+            <a href="/estimate" onClick={() => setOpen(false)}>
+              문의하기
+            </a>
+            <a href="/wish" onClick={() => setOpen(false)}>
+              관심상품
+            </a>
 
             {userEmail ? (
               <>
-                <a href="/mypage" onClick={() => setOpen(false)}>내정보</a>
+                <a href="/mypage" onClick={() => setOpen(false)}>
+                  내정보
+                </a>
                 <button
                   type="button"
                   onClick={logout}
-                  className="bg-black text-white px-5 py-3 rounded-xl text-center"
+                  className="rounded-xl bg-black px-5 py-3 text-center text-white"
                 >
                   로그아웃
                 </button>
               </>
             ) : (
               <>
-                <a href="/login" onClick={() => setOpen(false)}>로그인</a>
+                <a href="/login" onClick={() => setOpen(false)}>
+                  로그인
+                </a>
                 <a
                   href="/signup"
                   onClick={() => setOpen(false)}
-                  className="bg-black text-white px-5 py-3 rounded-xl text-center"
+                  className="rounded-xl bg-black px-5 py-3 text-center text-white"
                 >
                   회원가입
                 </a>
