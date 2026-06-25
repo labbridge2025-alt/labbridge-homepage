@@ -12,50 +12,51 @@ export default function Home() {
     <>
       <Header />
 
-      <main>
+<main className="pt-24">
         <section className="relative w-full">
-          {/* PC */}
-          <div className="relative hidden md:block">
-            <img
-              src="/images/main-hero-new.png"
-              alt="LabBridge"
-              className="block h-auto w-full"
-            />
+      
+{/* PC */}
+<div className="relative hidden md:block">
+  <img
+    src="/images/main-hero-new.png"
+    alt="LabBridge"
+    className="block h-auto w-full"
+  />
 
-            <div className="absolute left-20 top-[150px] z-10">
-              <p className="mb-6 text-[22px] font-medium tracking-wide text-neutral-800">
-                OEM/ODM SKINCARE SOLUTION
-              </p>
+  <div className="absolute left-20 top-[90px] z-10">
+    <p className="mb-5 text-[22px] font-medium tracking-wide text-neutral-800">
+      OEM/ODM SKINCARE SOLUTION
+    </p>
 
-              <h1 className="mb-8 text-[72px] font-extrabold leading-[1.25] tracking-[-2px] text-neutral-900">
-                화장품 제조의
-                <br />
-                시작부터 출시까지
-              </h1>
+    <h1 className="mb-7 text-[64px] font-extrabold leading-[1.18] tracking-[-2px] text-neutral-900">
+      화장품 제조의
+      <br />
+      시작부터 출시까지
+    </h1>
 
-              <p className="mb-9 text-[22px] leading-[1.8] text-neutral-700">
-                제형 개발부터 패키지, 생산, 인허가까지
-                <br />
-                원스톱 OEM/ODM 솔루션으로 브랜드의 성공을 함께 만듭니다.
-              </p>
+    <p className="mb-8 text-[20px] leading-[1.8] text-neutral-700">
+      제형 개발부터 패키지, 생산, 인허가까지
+      <br />
+      원스톱 OEM/ODM 솔루션으로 브랜드의 성공을 함께 만듭니다.
+    </p>
 
-              <div className="flex gap-4">
-                <a
-                  href="/estimate"
-                  className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md bg-black text-[17px] font-semibold text-white"
-                >
-                  제조 문의하기 <span>→</span>
-                </a>
+    <div className="flex gap-4">
+      <a
+        href="/estimate"
+        className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md bg-black text-[17px] font-semibold text-white"
+      >
+        제조 문의하기 <span>→</span>
+      </a>
 
-                <a
-                  href="/portfolio"
-                  className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md border border-neutral-500 bg-white/30 text-[17px] font-semibold text-neutral-900 backdrop-blur-sm"
-                >
-                  포트폴리오 보기 <span>→</span>
-                </a>
-              </div>
-            </div>
-          </div>
+      <a
+        href="/portfolio"
+        className="flex h-[58px] w-[220px] items-center justify-center gap-5 rounded-md border border-neutral-500 bg-white/30 text-[17px] font-semibold text-neutral-900 backdrop-blur-sm"
+      >
+        포트폴리오 보기 <span>→</span>
+      </a>
+    </div>
+  </div>
+</div>
 
           {/* Mobile */}
           <div className="relative block overflow-hidden bg-white md:hidden">

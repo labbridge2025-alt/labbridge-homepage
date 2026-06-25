@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { Heart, User, Menu } from "lucide-react";
+import { Heart, Menu, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Header() {
@@ -37,7 +37,6 @@ export default function Header() {
       }`}
     >
       <div className="flex h-24 items-center justify-between px-6 lg:px-20">
-        {/* 모바일 왼쪽 메뉴 */}
         <button
           type="button"
           onClick={() => setOpen(!open)}
@@ -46,7 +45,6 @@ export default function Header() {
           <Menu size={34} strokeWidth={1.8} />
         </button>
 
-        {/* 로고 */}
         <a href="/" className="flex flex-1 justify-center lg:block lg:flex-none">
           <Image
             src="/logo.png"
@@ -58,7 +56,6 @@ export default function Header() {
           />
         </a>
 
-        {/* PC 메뉴 */}
         <nav className="hidden items-center gap-8 text-lg font-bold lg:flex">
           <a href="/about">회사소개</a>
           <a href="/products">제형보러가기</a>
@@ -78,41 +75,35 @@ export default function Header() {
               <Heart size={24} strokeWidth={2} />
             </a>
 
-            {authReady && (
-              <>
-                {userEmail ? (
-                  <div className="relative group">
-                    <button className="py-2">
-                      <User size={24} strokeWidth={2} />
-                    </button>
-
-                    <div className="invisible absolute right-0 top-full w-40 rounded-xl border bg-white pt-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100">
-                      <a
-                        href="/mypage"
-                        className="block px-4 py-3 hover:bg-gray-50"
-                      >
-                        내정보
-                      </a>
-
-                      <button
-                        onClick={logout}
-                        className="block w-full px-4 py-3 text-left hover:bg-gray-50"
-                      >
-                        로그아웃
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <a href="/login">
+            {authReady &&
+              (userEmail ? (
+                <div className="group relative">
+                  <button type="button" className="py-2">
                     <User size={24} strokeWidth={2} />
-                  </a>
-                )}
-              </>
-            )}
+                  </button>
+
+                  <div className="invisible absolute right-0 top-full w-40 rounded-xl border bg-white pt-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                    <a href="/mypage" className="block px-4 py-3 hover:bg-gray-50">
+                      내정보
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="block w-full px-4 py-3 text-left hover:bg-gray-50"
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <a href="/login">
+                  <User size={24} strokeWidth={2} />
+                </a>
+              ))}
           </div>
         </nav>
 
-        {/* 모바일 오른쪽 아이콘 */}
         <div className="flex items-center gap-4 lg:hidden">
           <a href="/wish">
             <Heart size={27} strokeWidth={1.9} />
@@ -124,7 +115,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 모바일 메뉴 */}
       {open && (
         <div className="border-t bg-white px-6 py-6 lg:hidden">
           <nav className="flex flex-col gap-5 text-lg font-bold">
@@ -155,6 +145,7 @@ export default function Header() {
                 <a href="/mypage" onClick={() => setOpen(false)}>
                   내정보
                 </a>
+
                 <button
                   type="button"
                   onClick={logout}
@@ -168,6 +159,7 @@ export default function Header() {
                 <a href="/login" onClick={() => setOpen(false)}>
                   로그인
                 </a>
+
                 <a
                   href="/signup"
                   onClick={() => setOpen(false)}
