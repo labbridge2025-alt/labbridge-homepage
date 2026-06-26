@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
@@ -43,11 +43,17 @@ export default function GuideSlider() {
     loadGuideBanners();
   }, []);
 
+  const repeatedBanners = useMemo(() => {
+    return [...guideBanners, ...guideBanners, ...guideBanners];
+  }, [guideBanners]);
+
   if (guideBanners.length === 0) return null;
+
+  const middleStartIndex = guideBanners.length;
 
   return (
     <section className="overflow-hidden bg-[#f7f7f7] py-16 lg:py-20">
-      <div className="mx-auto max-w-[1400px] px-5">
+      <div className="mx-auto max-w-[1600px] px-5">
         <div className="mb-10 text-center lg:mb-12">
           <p className="mb-3 text-base text-gray-500 lg:mb-4 lg:text-2xl">
             브랜드와 제품 기획부터 출시까지
@@ -64,7 +70,7 @@ export default function GuideSlider() {
                 type="button"
                 onClick={() => {
                   setActiveIndex(index);
-                  swiperRef.current?.slideToLoop(index);
+                  swiperRef.current?.slideTo(middleStartIndex + index, 700);
                 }}
                 className={
                   activeIndex === index
@@ -80,22 +86,32 @@ export default function GuideSlider() {
 
         <Swiper
           modules={[Autoplay]}
+          initialSlide={middleStartIndex}
           autoplay={{
-            delay: 4000,
+            delay: 1800,
             disableOnInteraction: false,
           }}
           onSwiper={(swiper) => {
             swiperRef.current = swiper;
           }}
           onSlideChange={(swiper) => {
-            setActiveIndex(swiper.realIndex);
+            const realIndex = swiper.activeIndex % guideBanners.length;
+            setActiveIndex(realIndex);
+
+            if (swiper.activeIndex <= guideBanners.length - 1) {
+              swiper.slideTo(swiper.activeIndex + guideBanners.length, 0);
+            }
+
+            if (swiper.activeIndex >= guideBanners.length * 2) {
+              swiper.slideTo(swiper.activeIndex - guideBanners.length, 0);
+            }
           }}
-          loop={guideBanners.length > 1}
-          speed={600}
-          spaceBetween={24}
+          centeredSlides={true}
+          speed={700}
+          spaceBetween={28}
           breakpoints={{
             0: {
-              slidesPerView: 1,
+              slidesPerView: 1.15,
               spaceBetween: 12,
             },
             768: {
@@ -108,19 +124,27 @@ export default function GuideSlider() {
             },
           }}
         >
-          {guideBanners.map((item, index) => (
-            <SwiperSlide key={item.id}>
-              <div className="relative aspect-square overflow-hidden rounded-sm bg-white">
-                <Image
-                  src={item.imageUrl}
-                  alt={item.title}
-                  fill
-                  priority={index === 0}
-                  className="object-contain"
-                />
-              </div>
-            </SwiperSlide>
-          ))}
+          {repeatedBanners.map((item, index) => (
+  <SwiperSlide key={`${item.id}-${index}`}>
+    {({ isActive }) => (
+      <div
+        className={
+          isActive
+            ? "relative aspect-square overflow-hidden rounded-sm bg-white opacity-100 transition-all duration-500"
+            : "relative aspect-square overflow-hidden rounded-sm bg-white opacity-35 scale-95 transition-all duration-500"
+        }
+      >
+        <Image
+          src={item.imageUrl}
+          alt={item.title}
+          fill
+          priority={index === middleStartIndex}
+          className="object-cover"
+        />
+      </div>
+    )}
+  </SwiperSlide>
+))}
         </Swiper>
       </div>
     </section>

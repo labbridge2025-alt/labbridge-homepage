@@ -12,15 +12,15 @@ export default function Home() {
     <>
       <Header />
 
-<main className="pt-24">
+<main className="pt-0 md:pt-24">
         <section className="relative w-full">
       
 {/* PC */}
-<div className="relative hidden md:block">
+<div className="relative hidden h-[720px] w-full overflow-hidden md:block">
   <img
     src="/images/main-hero-new.png"
     alt="LabBridge"
-    className="block h-auto w-full"
+    className="h-full w-full object-cover object-left"
   />
 
   <div className="absolute left-20 top-[90px] z-10">
@@ -59,12 +59,12 @@ export default function Home() {
 </div>
 
           {/* Mobile */}
-          <div className="relative block overflow-hidden bg-white md:hidden">
+          <div className="relative block h-[calc(100vh-96px)] overflow-hidden md:hidden">
             <img
-              src="/images/main-hero-mobile.png"
-              alt="LabBridge Mobile"
-              className="block h-auto w-full"
-            />
+  src="/images/main-hero-mobile.png"
+  alt="LabBridge Mobile"
+  className="h-full w-full object-cover object-top"
+/>
 
 {/* Mobile Header */}
 <div className="absolute left-0 top-0 z-20 flex w-full items-center justify-between px-6 pt-7">

@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperType } from "swiper";
+import { Autoplay } from "swiper/modules";
 import { db } from "@/lib/firebase";
+
+import "swiper/css";
 
 type PortfolioItem = {
   id: string;
@@ -19,13 +24,14 @@ type PortfolioItem = {
 
 export default function HomePortfolio() {
   const [items, setItems] = useState<PortfolioItem[]>([]);
+  const swiperRef = useRef<SwiperType | null>(null);
 
   useEffect(() => {
     const loadPortfolio = async () => {
       const q = query(
         collection(db, "portfolio"),
         orderBy("createdAt", "desc"),
-        limit(4)
+        limit(8)
       );
 
       const snapshot = await getDocs(q);
@@ -41,52 +47,115 @@ export default function HomePortfolio() {
     loadPortfolio();
   }, []);
 
+  const repeatedItems = useMemo(() => {
+    return [...items, ...items, ...items];
+  }, [items]);
+
+  if (items.length === 0) return null;
+
+  const middleStartIndex = items.length;
+
   return (
-    <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10 lg:mb-20">
+    <section className="overflow-hidden bg-gray-50 px-5 py-24 sm:px-8 lg:px-20 lg:py-40">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between lg:mb-20">
           <div>
-            <p className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6">
+            <p className="mb-4 text-lg font-semibold lg:mb-6 lg:text-2xl">
               PORTFOLIO
             </p>
-
           </div>
 
-          <a href="/portfolio" className="text-lg lg:text-2xl font-semibold">
+          <a href="/portfolio" className="text-lg font-semibold lg:text-2xl">
             VIEW MORE →
           </a>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {items.slice(0, 3).map((item) => (
-            <div
-              key={item.id}
-              className="bg-white border border-black rounded-2xl overflow-hidden"
-            >
-              <div className="h-[260px] lg:h-[360px] bg-gray-100 overflow-hidden">
-                <img
-                  src={item.imageUrl || item.image}
-                  alt={item.productName || item.title || "포트폴리오"}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+        <Swiper
+  modules={[Autoplay]}
+  initialSlide={middleStartIndex}
+  autoplay={{
+    delay: 1800,
+    disableOnInteraction: false,
+    pauseOnMouseEnter: false,
+  }}
+  onSwiper={(swiper) => {
+    swiperRef.current = swiper;
+  }}
+  onSlideChange={(swiper) => {
+    if (swiper.activeIndex <= items.length - 1) {
+      swiper.slideTo(swiper.activeIndex + items.length, 0);
 
-              <div className="p-8">
-                <p className="text-gray-500 font-semibold mb-4">
-                  {item.brand || item.name || ""}
-                </p>
+      setTimeout(() => {
+        swiper.autoplay.start();
+      }, 0);
+    }
 
-                <h3 className="text-2xl lg:text-3xl font-bold mb-5 uppercase">
-                  {item.productName || item.product || item.name || item.title || "제품명"}
-                </h3>
+    if (swiper.activeIndex >= items.length * 2) {
+      swiper.slideTo(swiper.activeIndex - items.length, 0);
 
-                <p className="text-gray-600 leading-relaxed">
-                  {item.description || item.desc || "OEM · ODM 제조 사례"}
-                </p>
-              </div>
-            </div>
+      setTimeout(() => {
+        swiper.autoplay.start();
+      }, 0);
+    }
+  }}
+  centeredSlides={true}
+  speed={700}
+  spaceBetween={28}
+  breakpoints={{
+    0: {
+      slidesPerView: 1.05,
+      spaceBetween: 16,
+    },
+    768: {
+      slidesPerView: 2.1,
+      spaceBetween: 24,
+    },
+    1280: {
+      slidesPerView: 3,
+      spaceBetween: 32,
+    },
+  }}
+>
+          {repeatedItems.map((item, index) => (
+            <SwiperSlide key={`${item.id}-${index}`}>
+              {({ isActive }) => (
+                <div
+                  className={
+                    isActive
+                      ? "overflow-hidden rounded-2xl border border-black bg-white opacity-100 transition-all duration-500"
+                      : "overflow-hidden rounded-2xl border border-black bg-white opacity-35 scale-95 transition-all duration-500"
+                  }
+                >
+                  <div className="h-[260px] overflow-hidden bg-gray-100 lg:h-[360px]">
+                    <img
+                      src={item.imageUrl || item.image}
+                      alt={item.productName || item.title || "포트폴리오"}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <div className="p-8">
+                    <p className="mb-4 font-semibold text-gray-500">
+                      {item.brand || item.name || ""}
+                    </p>
+
+                    <h3 className="mb-5 text-2xl font-bold uppercase lg:text-3xl">
+                      {item.productName ||
+                        item.product ||
+                        item.name ||
+                        item.title ||
+                        "제품명"}
+                    </h3>
+
+                    <p className="leading-relaxed text-gray-600">
+                      {item.description || item.desc || "OEM · ODM 제조 사례"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
       </div>
     </section>
   );
