@@ -48,14 +48,14 @@ const FontSize = Extension.create({
   },
 
   addCommands() {
-    return {
-      setFontSize:
-        (fontSize: string) =>
-        ({ chain }) => {
-          return chain().setMark("textStyle", { fontSize }).run();
-        },
-    } as any;
-  },
+  return {
+    setFontSize:
+      (fontSize: string) =>
+      ({ chain }: any) => {
+        return chain().setMark("textStyle", { fontSize }).run();
+      },
+  } as any;
+},
 });
 const categories = [
   "원료자료",
