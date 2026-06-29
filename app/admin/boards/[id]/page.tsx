@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  doc,
+  getDoc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 
@@ -13,11 +18,11 @@ import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import Youtube from "@tiptap/extension-youtube";
-import { Extension } from "@tiptap/core";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
 import FontFamily from "@tiptap/extension-font-family";
+import { Extension } from "@tiptap/core";
 const FontSize = Extension.create({
   name: "fontSize",
 
@@ -66,8 +71,10 @@ const categories = [
   "기타",
 ];
 
-export default function AdminBoardNewPage() {
+export default function AdminBoardEditPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   const [category, setCategory] = useState("원료자료");
   const [title, setTitle] = useState("");
@@ -75,10 +82,11 @@ export default function AdminBoardNewPage() {
   const [keywords, setKeywords] = useState("");
   const [isPublished, setIsPublished] = useState(true);
   const [files, setFiles] = useState<File[]>([]);
+  const [existingFiles, setExistingFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const editor = useEditor({
-    extensions: [
+  extensions: [
   StarterKit,
   TextStyle,
   FontSize,
@@ -101,11 +109,37 @@ export default function AdminBoardNewPage() {
     content: "",
     editorProps: {
       attributes: {
-        class:
-          "min-h-[420px] outline-none px-8 py-8 text-[16px] leading-8",
+        class: "min-h-[420px] outline-none px-8 py-8 text-[16px] leading-8",
       },
     },
   });
+
+  useEffect(() => {
+    const loadBoard = async () => {
+      if (!id || !editor) return;
+
+      const snap = await getDoc(doc(db, "boards", id));
+
+      if (!snap.exists()) {
+        alert("게시글을 찾을 수 없습니다.");
+        router.push("/admin/boards");
+        return;
+      }
+
+      const data: any = snap.data();
+
+      setCategory(data.category || "원료자료");
+      setTitle(data.title || "");
+      setSummary(data.summary || "");
+      setKeywords((data.keywords || []).join(", "));
+      setIsPublished(data.isPublished ?? true);
+      setExistingFiles(data.files || []);
+
+      editor.commands.setContent(data.content || "");
+    };
+
+    loadBoard();
+  }, [id, editor, router]);
 
   const uploadImageToEditor = async (file: File) => {
     if (!editor) return;
@@ -129,6 +163,10 @@ export default function AdminBoardNewPage() {
     if (!url) return;
 
     editor?.chain().focus().setLink({ href: url }).run();
+  };
+
+  const removeExistingFile = (index: number) => {
+    setExistingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -155,7 +193,7 @@ export default function AdminBoardNewPage() {
         });
       }
 
-      await addDoc(collection(db, "boards"), {
+      await updateDoc(doc(db, "boards", id), {
         category,
         title,
         summary,
@@ -165,16 +203,15 @@ export default function AdminBoardNewPage() {
           .map((v) => v.trim())
           .filter(Boolean),
         isPublished,
-        files: uploadedFiles,
-        createdAt: serverTimestamp(),
+        files: [...existingFiles, ...uploadedFiles],
         updatedAt: serverTimestamp(),
       });
 
-      alert("게시글이 등록되었습니다.");
+      alert("게시글이 수정되었습니다.");
       router.push("/admin/boards");
     } catch (error) {
       console.error(error);
-      alert("등록 중 오류가 발생했습니다.");
+      alert("수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -183,9 +220,9 @@ export default function AdminBoardNewPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">게시글 등록</h1>
+        <h1 className="text-3xl font-bold">게시글 수정</h1>
         <p className="mt-2 text-gray-500">
-          원료자료, 가이드라인, 공지사항 등을 등록합니다.
+          등록된 게시글 내용을 수정합니다.
         </p>
       </div>
 
@@ -208,7 +245,6 @@ export default function AdminBoardNewPage() {
             <label className="mb-2 block font-semibold">제목 *</label>
             <input
               className="w-full rounded-xl border border-gray-300 p-3"
-              placeholder="예: PDRN"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -218,7 +254,6 @@ export default function AdminBoardNewPage() {
             <label className="mb-2 block font-semibold">한줄 설명 *</label>
             <input
               className="w-full rounded-xl border border-gray-300 p-3"
-              placeholder="예: 피부 컨디션 케어에 도움을 주는 원료"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
             />
@@ -232,12 +267,15 @@ export default function AdminBoardNewPage() {
                 <select
                   onChange={(e) => {
                     const value = e.target.value;
+
                     if (value === "paragraph") {
                       editor?.chain().focus().setParagraph().run();
                     }
+
                     if (value === "h2") {
                       editor?.chain().focus().toggleHeading({ level: 2 }).run();
                     }
+
                     if (value === "h3") {
                       editor?.chain().focus().toggleHeading({ level: 3 }).run();
                     }
@@ -325,7 +363,9 @@ export default function AdminBoardNewPage() {
 
                 <button
                   type="button"
-                  onClick={() => editor?.chain().focus().setTextAlign("left").run()}
+                  onClick={() =>
+                    editor?.chain().focus().setTextAlign("left").run()
+                  }
                   className="h-9 w-9 rounded hover:bg-gray-200"
                   title="왼쪽 정렬"
                 >
@@ -358,7 +398,9 @@ export default function AdminBoardNewPage() {
 
                 <button
                   type="button"
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  onClick={() =>
+                    editor?.chain().focus().toggleBulletList().run()
+                  }
                   className="h-9 w-9 rounded hover:bg-gray-200"
                   title="목록"
                 >
@@ -402,14 +444,37 @@ export default function AdminBoardNewPage() {
 
               <EditorContent editor={editor} />
             </div>
-
-            <p className="mt-2 text-sm text-gray-400">
-              이미지 버튼을 누르면 선택한 이미지가 본문 안에 바로 삽입됩니다.
-            </p>
           </div>
 
           <div>
             <label className="mb-2 block font-semibold">첨부 파일</label>
+
+            {existingFiles.length > 0 && (
+              <div className="mb-3 space-y-2">
+                {existingFiles.map((file, index) => (
+                  <div
+                    key={`${file.url}-${index}`}
+                    className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
+                  >
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      className="hover:underline"
+                    >
+                      {file.name}
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => removeExistingFile(index)}
+                      className="text-red-500"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-gray-500 hover:bg-gray-50">
               + 파일 추가
@@ -432,6 +497,7 @@ export default function AdminBoardNewPage() {
                     className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
                   >
                     <span>{file.name}</span>
+
                     <button
                       type="button"
                       onClick={() =>
@@ -451,7 +517,6 @@ export default function AdminBoardNewPage() {
             <label className="mb-2 block font-semibold">키워드</label>
             <input
               className="w-full rounded-xl border border-gray-300 p-3"
-              placeholder="예: 보습, 탄력, 피부결"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
             />
@@ -473,7 +538,7 @@ export default function AdminBoardNewPage() {
               disabled={loading}
               className="rounded-xl bg-black px-6 py-3 font-semibold text-white disabled:bg-gray-400"
             >
-              {loading ? "등록 중..." : "등록하기"}
+              {loading ? "수정 중..." : "수정하기"}
             </button>
 
             <button

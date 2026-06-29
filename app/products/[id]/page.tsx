@@ -12,7 +12,8 @@ export default function ProductDetailPage() {
   const id = params.id as string;
 
   const [product, setProduct] = useState<any>(null);
-const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const [selectedImage, setSelectedImage] = useState("");
   useEffect(() => {
     if (!id) return;
 
@@ -20,22 +21,28 @@ const [isLoggedIn, setIsLoggedIn] = useState(false);
       const snap = await getDoc(doc(db, "products", id));
 
       if (snap.exists()) {
-        setProduct({
-          id: snap.id,
-          ...snap.data(),
-        });
+        const data: any = snap.data();
+
+setProduct({
+  id: snap.id,
+  ...data,
+});
+
+setSelectedImage(data.image || "");
       }
     };
 
     loadProduct();
   }, [id]);
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setIsLoggedIn(!!user);
-  });
 
-  return () => unsubscribe();
-}, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   if (!product) {
     return <main className="pt-32 text-center">불러오는 중...</main>;
   }
@@ -44,15 +51,38 @@ useEffect(() => {
     <main className="pt-28 lg:pt-40 pb-24 lg:pb-32">
       {/* 상단 */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-start">
-          {/* 이미지 */}
-          <div className="bg-gray-100 rounded-2xl lg:rounded-3xl overflow-hidden">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-[360px] sm:h-[520px] lg:h-[620px] object-cover"
-            />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[760px_520px] gap-12 items-start">
+          {/* 이미지 갤러리 */}
+<div className="flex gap-4">
+  <div className="flex flex-col gap-4 w-20 lg:w-24">
+    {[product.image, ...(product.detailImages || [])].map(
+      (img: string, index: number) => (
+        <button
+          key={`${img}-${index}`}
+          type="button"
+          onClick={() => setSelectedImage(img)}
+          className={`w-20 h-20 lg:w-24 lg:h-24 rounded-2xl overflow-hidden border ${
+            selectedImage === img ? "border-black" : "border-transparent"
+          }`}
+        >
+          <img
+            src={img}
+            alt={`${product.name} 썸네일 ${index + 1}`}
+            className="w-full h-full object-cover"
+          />
+        </button>
+      )
+    )}
+  </div>
+
+<div className="w-[600px] bg-gray-100 rounded-3xl overflow-hidden">
+  <img
+    src={selectedImage || product.image}
+    alt={product.name}
+    className="w-full aspect-square object-cover hover:scale-105 transition duration-300"
+  />
+</div>
+</div>
 
           {/* 정보 */}
           <div>
@@ -64,7 +94,6 @@ useEffect(() => {
               {product.name}
             </h1>
 
-            {/* 태그 */}
             {product.tags?.length > 0 && (
               <div className="flex gap-2 flex-wrap mb-6 lg:mb-8">
                 {product.tags.map((tag: string) => (
@@ -78,7 +107,6 @@ useEffect(() => {
               </div>
             )}
 
-            {/* MOQ */}
             <div className="border-t border-b py-6 lg:py-8 space-y-4 lg:space-y-5 text-base lg:text-xl">
               <div className="flex justify-between">
                 <span className="text-gray-500">MOQ</span>
@@ -88,16 +116,15 @@ useEffect(() => {
               <div className="flex justify-between">
                 <span className="text-gray-500">g당 단가</span>
                 {isLoggedIn ? (
-  <strong>{product.unitPrice}원</strong>
-) : (
-  <strong className="blur-sm select-none">
-    {product.unitPrice}원
-  </strong>
-)}
+                  <strong>{product.unitPrice}원</strong>
+                ) : (
+                  <strong className="blur-sm select-none">
+                    {product.unitPrice}원
+                  </strong>
+                )}
               </div>
             </div>
 
-            {/* 추가 가능 정보 */}
             {(product.availableFunctionalTypes?.length > 0 ||
               product.conceptIngredientAvailable !== undefined) && (
               <div className="mt-6 lg:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
@@ -140,19 +167,45 @@ useEffect(() => {
               </div>
             )}
 
-            {/* 버튼 */}
             <div className="mt-8 lg:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-              <button className="border rounded-2xl py-4 lg:py-5 font-bold">
-                관심상품 담기
-              </button>
+              <button
+  type="button"
+  onClick={() => {
+    const saved = localStorage.getItem("labbridge-wish");
+    const current: string[] = saved ? JSON.parse(saved) : [];
+
+    if (!current.includes(product.id)) {
+      const next = [...current, product.id];
+      localStorage.setItem("labbridge-wish", JSON.stringify(next));
+      alert("관심상품에 담겼습니다.");
+    } else {
+      alert("이미 관심상품에 담긴 제품입니다.");
+    }
+  }}
+  className="border rounded-2xl py-4 lg:py-5 font-bold"
+>
+  관심상품 담기
+</button>
 
               {product.sampleAvailable ? (
-                <a
-                  href={`/estimate?product=${encodeURIComponent(product.name)}`}
-                  className="bg-black text-white rounded-2xl py-4 lg:py-5 font-bold text-center"
-                >
-                  샘플 의뢰하기
-                </a>
+                <button
+  type="button"
+  onClick={() => {
+    const saved = localStorage.getItem("labbridge-wish");
+    const current: string[] = saved ? JSON.parse(saved) : [];
+
+    const next = current.includes(product.id)
+      ? current
+      : [...current, product.id];
+
+    localStorage.setItem("labbridge-wish", JSON.stringify(next));
+
+    window.location.href = "/estimate";
+  }}
+  className="bg-black text-white rounded-2xl py-4 lg:py-5 font-bold text-center"
+>
+  샘플 의뢰하기
+</button>
               ) : (
                 <button
                   disabled
@@ -164,13 +217,15 @@ useEffect(() => {
             </div>
 
             {!isLoggedIn && (
-  <p className="mt-5 lg:mt-6 text-xs lg:text-sm text-gray-500 leading-relaxed">
-    g당 단가는 회원 전용 정보입니다. 로그인 후 확인 가능합니다.
-  </p>
-)}
+              <p className="mt-5 lg:mt-6 text-xs lg:text-sm text-gray-500 leading-relaxed">
+                g당 단가는 회원 전용 정보입니다. 로그인 후 확인 가능합니다.
+              </p>
+            )}
           </div>
         </div>
       </section>
+
+
 
       {/* 하단 상세정보 */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 mt-16 lg:mt-24">
