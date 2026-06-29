@@ -21,6 +21,7 @@ type GuideBanner = {
   title: string;
   description: string;
   imageUrl: string;
+  link: string;
   order: number;
   active: boolean;
 };
@@ -36,7 +37,7 @@ export default function AdminGuidePage() {
 
   const [items, setItems] = useState<GuideBanner[]>([]);
   const [loading, setLoading] = useState(false);
-
+const [link, setLink] = useState("");
   const loadBanners = async () => {
     const q = query(collection(db, "guideBanners"), orderBy("order", "asc"));
     const snapshot = await getDocs(q);
@@ -60,7 +61,7 @@ export default function AdminGuidePage() {
     setDescription("");
     setOrder("");
     setFile(null);
-
+setLink("");
     const fileInput = document.getElementById(
       "guide-file"
     ) as HTMLInputElement | null;
@@ -75,7 +76,7 @@ export default function AdminGuidePage() {
     setDescription(item.description || "");
     setOrder(String(item.order || ""));
     setFile(null);
-
+setLink(item.link || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -94,21 +95,23 @@ export default function AdminGuidePage() {
       setLoading(true);
 
       const saveData: {
-        tag: string;
-        title: string;
-        description: string;
-        order: number;
-        active: boolean;
-        updatedAt: any;
-        imageUrl?: string;
-      } = {
-        tag,
-        title,
-        description,
-        order: Number(order),
-        active: true,
-        updatedAt: serverTimestamp(),
-      };
+  tag: string;
+  title: string;
+  description: string;
+  link: string;
+  order: number;
+  active: boolean;
+  updatedAt: any;
+  imageUrl?: string;
+} = {
+  tag,
+  title,
+  description,
+  link,
+  order: Number(order),
+  active: true,
+  updatedAt: serverTimestamp(),
+};
 
       if (file) {
         const fileName = `${Date.now()}-${file.name}`;
@@ -195,7 +198,15 @@ export default function AdminGuidePage() {
               className="w-full rounded-xl border px-4 py-3"
             />
           </div>
-
+<div>
+  <label className="mb-2 block font-semibold">이동 링크</label>
+  <input
+    value={link}
+    onChange={(e) => setLink(e.target.value)}
+    placeholder="예: /boards/게시글ID 또는 https://example.com"
+    className="w-full rounded-xl border px-4 py-3"
+  />
+</div>
           <div>
             <label className="mb-2 block font-semibold">노출 순서</label>
             <input
@@ -259,7 +270,11 @@ export default function AdminGuidePage() {
                   <p className="text-sm text-gray-500">{item.description}</p>
                 )}
               </div>
-
+{item.link && (
+  <p className="text-xs text-blue-500 break-all">
+    이동 링크: {item.link}
+  </p>
+)}
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleEdit(item)}

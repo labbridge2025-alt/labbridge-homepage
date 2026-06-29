@@ -16,6 +16,7 @@ type GuideBanner = {
   title: string;
   description?: string;
   imageUrl: string;
+  link?: string;
   order: number;
   active?: boolean;
 };
@@ -127,21 +128,22 @@ export default function GuideSlider() {
           {repeatedBanners.map((item, index) => (
   <SwiperSlide key={`${item.id}-${index}`}>
     {({ isActive }) => (
-      <div
-        className={
-          isActive
-            ? "relative aspect-square overflow-hidden rounded-sm bg-white opacity-100 transition-all duration-500"
-            : "relative aspect-square overflow-hidden rounded-sm bg-white opacity-35 scale-95 transition-all duration-500"
-        }
-      >
-        <Image
-          src={item.imageUrl}
-          alt={item.title}
-          fill
-          priority={index === middleStartIndex}
-          className="object-cover"
-        />
-      </div>
+      <a
+  href={item.link || "#"}
+  className={
+    isActive
+      ? "relative block aspect-square overflow-hidden rounded-sm bg-white opacity-100 transition-all duration-500"
+      : "relative block aspect-square overflow-hidden rounded-sm bg-white opacity-35 scale-95 transition-all duration-500"
+  }
+>
+  <Image
+    src={item.imageUrl}
+    alt={item.title}
+    fill
+    priority={index === middleStartIndex}
+    className="object-cover"
+  />
+</a>
     )}
   </SwiperSlide>
 ))}
