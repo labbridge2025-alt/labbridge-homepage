@@ -53,35 +53,51 @@ setSelectedImage(data.image || "");
       <section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-[760px_520px] gap-12 items-start">
           {/* 이미지 갤러리 */}
-<div className="flex gap-4">
-  <div className="flex flex-col gap-4 w-20 lg:w-24">
+<div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+  {/* PC 썸네일 */}
+  <div className="hidden lg:flex flex-col gap-4 w-24">
     {[product.image, ...(product.detailImages || [])].map(
       (img: string, index: number) => (
         <button
           key={`${img}-${index}`}
           type="button"
           onClick={() => setSelectedImage(img)}
-          className={`w-20 h-20 lg:w-24 lg:h-24 rounded-2xl overflow-hidden border ${
+          className={`w-24 h-24 rounded-2xl overflow-hidden border ${
             selectedImage === img ? "border-black" : "border-transparent"
           }`}
         >
-          <img
-            src={img}
-            alt={`${product.name} 썸네일 ${index + 1}`}
-            className="w-full h-full object-cover"
-          />
+          <img src={img} alt="" className="w-full h-full object-cover" />
         </button>
       )
     )}
   </div>
 
-<div className="w-[600px] bg-gray-100 rounded-3xl overflow-hidden">
-  <img
-    src={selectedImage || product.image}
-    alt={product.name}
-    className="w-full aspect-square object-cover hover:scale-105 transition duration-300"
-  />
-</div>
+  {/* 큰 이미지 */}
+  <div className="flex-1 max-w-[760px] bg-gray-100 rounded-3xl overflow-hidden">
+    <img
+      src={selectedImage || product.image}
+      alt={product.name}
+      className="w-full aspect-square object-cover"
+    />
+  </div>
+
+ {/* 모바일 썸네일 */}
+<div className="flex lg:hidden gap-2 overflow-x-auto pt-2 pb-1 w-fit max-w-full">
+    {[product.image, ...(product.detailImages || [])].map(
+      (img: string, index: number) => (
+        <button
+          key={`${img}-${index}`}
+          type="button"
+          onClick={() => setSelectedImage(img)}
+          className={`shrink-0 w-14 h-14 rounded-xl overflow-hidden border ${
+            selectedImage === img ? "border-black" : "border-transparent"
+          }`}
+        >
+          <img src={img} alt="" className="w-full h-full object-cover" />
+        </button>
+      )
+    )}
+  </div>
 </div>
 
           {/* 정보 */}
