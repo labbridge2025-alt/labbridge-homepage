@@ -12,6 +12,16 @@ const menus = [
   { name: "상품 관리", href: "/admin/products" },
   { name: "게시판 관리", href: "/admin/boards" },
   { name: "직원 관리", href: "/admin/users" },
+  {
+  name: "용기 관리",
+  href: "/admin/containers",
+  permission: "products",
+},
+{
+  name: "패키지 관리",
+  href: "/admin/packages",
+  permission: "products",
+},
 ];
 
 export default function AdminSidebar() {

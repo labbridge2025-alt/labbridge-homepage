@@ -43,20 +43,58 @@ export default function EstimatePage() {
 
       const ids: string[] = JSON.parse(saved);
 
-      const products = await Promise.all(
-        ids.map(async (id) => {
-          const snap = await getDoc(doc(db, "products", id));
+      const selectedItems = await Promise.all(
+  ids.map(async (id) => {
+    const productSnap = await getDoc(doc(db, "products", id));
+    if (productSnap.exists()) {
+      const data: any = productSnap.data();
 
-          if (!snap.exists()) return null;
+      return {
+        id: productSnap.id,
+        type: "제형",
+        name: data.name || "",
+        category: data.category || "",
+        moq: data.moq || "",
+        unitPrice: data.unitPrice || "",
+        image: data.image || "",
+      };
+    }
 
-          return {
-            id: snap.id,
-            ...snap.data(),
-          };
-        })
-      );
+    const containerSnap = await getDoc(doc(db, "containers", id));
+    if (containerSnap.exists()) {
+      const data: any = containerSnap.data();
 
-      setSelectedProducts(products.filter(Boolean));
+      return {
+        id: containerSnap.id,
+        type: "용기",
+        name: data.name || "",
+        category: data.categoryName || "",
+        moq: data.moq || "",
+        unitPrice: "",
+        image: data.imageUrl || "",
+      };
+    }
+
+    const packageSnap = await getDoc(doc(db, "packages", id));
+    if (packageSnap.exists()) {
+      const data: any = packageSnap.data();
+
+      return {
+        id: packageSnap.id,
+        type: "패키지",
+        name: data.name || "",
+        category: data.categoryName || "",
+        moq: data.moq || "",
+        unitPrice: "",
+        image: data.imageUrl || "",
+      };
+    }
+
+    return null;
+  })
+);
+
+setSelectedProducts(selectedItems.filter(Boolean));
     };
 
     loadWishProducts();
@@ -132,10 +170,12 @@ export default function EstimatePage() {
                     )}
 
                     <div>
-                      <p className="font-bold">{item.name}</p>
-                      <p className="text-sm text-gray-500">
-                        {item.category} / MOQ {item.moq}
-                      </p>
+                      <p className="font-bold">
+  [{item.type}] {item.name}
+</p>
+<p className="text-sm text-gray-500">
+  {item.category} / MOQ {item.moq}
+</p>
                     </div>
                   </div>
                 ))}
