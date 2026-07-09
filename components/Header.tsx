@@ -126,6 +126,12 @@ export default function Header() {
             <a href="/products" onClick={() => setOpen(false)}>
               제형보러가기
             </a>
+            <a href="/containers" onClick={() => setOpen(false)}>
+  용기보러가기
+</a>
+<a href="/packages" onClick={() => setOpen(false)}>
+  패키지보러가기
+</a>
             <a href="/process" onClick={() => setOpen(false)}>
               진행절차
             </a>
