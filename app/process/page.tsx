@@ -1,5 +1,5 @@
 import Header from "@/components/Header";
-
+import Image from "next/image";
 export default function ProcessPage() {
   const solutions = [
     {
@@ -45,11 +45,11 @@ export default function ProcessPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center mb-20">
             <div>
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight mb-6">
-                브랜드 런칭을 위한
-                <br />
-                원스톱 제조 솔루션
-              </h1>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 break-keep">
+  브랜드 런칭을 위한
+  <br />
+  원스톱 제조 솔루션
+</h1>
 
               <p className="text-base sm:text-lg lg:text-2xl text-gray-600 leading-relaxed">
                 랩브릿지는 제품 기획부터 제형 개발, 용기, 부자재, 임상,
@@ -57,9 +57,15 @@ export default function ProcessPage() {
               </p>
             </div>
 
-            <div className="h-[280px] lg:h-[420px] rounded-3xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-2xl font-bold">
-              IMAGE AREA
-            </div>
+            <div className="relative h-[280px] lg:h-[420px] rounded-3xl overflow-hidden">
+  <Image
+    src="/images/process-hero.png"
+    alt="랩브릿지 솔루션"
+    fill
+    className="object-cover"
+    priority
+  />
+</div>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mb-24">
@@ -109,9 +115,14 @@ export default function ProcessPage() {
 
           <section className="bg-gray-50 rounded-3xl p-6 lg:p-14 mb-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-              <div className="h-[260px] lg:h-[420px] bg-white rounded-2xl flex items-center justify-center text-gray-400 font-bold">
-                PRODUCT IMAGE
-              </div>
+              <div className="relative h-[260px] lg:h-[420px] rounded-2xl overflow-hidden">
+  <Image
+    src="/images/process-product.png"
+    alt="랩브릿지 제조"
+    fill
+    className="object-cover"
+  />
+</div>
 
               <div>
                 <h2 className="text-3xl lg:text-5xl font-bold mb-8 leading-tight">
