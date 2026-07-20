@@ -582,6 +582,27 @@ function Agreement({
   );
 }
 
-function Input({ placeholder, type = "text" }: { placeholder: string; type?: string }) {
-  return <input type={type} placeholder={placeholder} className="w-full rounded-xl border px-4 py-4" />;
+function Input({
+  placeholder,
+  type = "text",
+  value,
+  onChange,
+  inputMode,
+}: {
+  placeholder: string;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  inputMode?: "text" | "tel" | "email" | "numeric" | "decimal" | "search" | "url";
+}) {
+  return (
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      inputMode={inputMode}
+      className="w-full rounded-xl border px-4 py-4"
+    />
+  );
 }
