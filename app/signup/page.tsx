@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
@@ -16,7 +19,13 @@ export default function SignupPage() {
   const [agreeKakao, setAgreeKakao] = useState(false);
 
   const [verified, setVerified] = useState(false);
+const [name, setName] = useState("");
+const [phone, setPhone] = useState("");
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [passwordConfirm, setPasswordConfirm] = useState("");
 
+const [signupLoading, setSignupLoading] = useState(false);
   const requiredAgreed =
     agreeTerms && agreePrivacy && agreeMatching && agreeNoBypass && agreeAge;
 
@@ -32,11 +41,162 @@ export default function SignupPage() {
     setAgreeKakao(checked);
   };
 
-  const fakeVerify = () => {
-    alert("본인인증이 완료되었습니다.");
-    setVerified(true);
-  };
+ const handleNiceVerify = async () => {
+  try {
+    const popup = window.open(
+      "",
+      "niceVerification",
+      "width=500,height=700,top=100,left=100"
+    );
 
+    if (!popup) {
+      alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
+      return;
+    }
+
+    popup.document.write(`
+      <div style="
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        height:100vh;
+        font-family:sans-serif;
+      ">
+        본인인증 창을 불러오는 중입니다.
+      </div>
+    `);
+
+    const response = await fetch("/api/nice/auth", {
+      method: "POST",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success || !data.authUrl) {
+      popup.close();
+
+      alert(
+        data.message ||
+          "본인인증 요청을 불러오지 못했습니다."
+      );
+
+      return;
+    }
+
+    /*
+     * 다음 인증 결과 조회 단계에서 임시로 사용할 값
+     */
+    sessionStorage.setItem(
+      "niceVerification",
+      JSON.stringify({
+        requestNo: data.requestNo,
+        transactionId: data.transactionId,
+        accessToken: data.accessToken,
+        ticket: data.ticket,
+        iterators: data.iterators,
+      })
+    );
+
+    popup.location.href = data.authUrl;
+  } catch (error) {
+    console.error("NICE 본인인증 오류:", error);
+
+    alert("본인인증 요청 중 오류가 발생했습니다.");
+  }
+};
+const handleSignup = async () => {
+  if (!name.trim()) {
+    alert("성함을 입력해주세요.");
+    return;
+  }
+
+  if (!phone.trim()) {
+    alert("연락처를 입력해주세요.");
+    return;
+  }
+
+  if (!email.trim()) {
+    alert("이메일을 입력해주세요.");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("비밀번호는 6자 이상 입력해주세요.");
+    return;
+  }
+
+  if (password !== passwordConfirm) {
+    alert("비밀번호가 일치하지 않습니다.");
+    return;
+  }
+
+  try {
+    setSignupLoading(true);
+
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email.trim(),
+      password
+    );
+
+    const uid = userCredential.user.uid;
+
+    await setDoc(doc(db, "members", uid), {
+      uid,
+      name: name.trim(),
+      phone: phone.trim(),
+      email: email.trim().toLowerCase(),
+
+      role: "member",
+      status: "active",
+
+      agreements: {
+        terms: agreeTerms,
+        privacy: agreePrivacy,
+        matching: agreeMatching,
+        noBypass: agreeNoBypass,
+        age: agreeAge,
+        emailMarketing: agreeEmail,
+        smsMarketing: agreeSms,
+        kakaoMarketing: agreeKakao,
+      },
+
+      verified,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    setStep(4);
+  } catch (error: unknown) {
+    console.error("회원가입 실패:", error);
+
+    const errorCode =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error
+        ? String(error.code)
+        : "";
+
+    if (errorCode === "auth/email-already-in-use") {
+      alert("이미 가입된 이메일입니다.");
+      return;
+    }
+
+    if (errorCode === "auth/invalid-email") {
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
+
+    if (errorCode === "auth/weak-password") {
+      alert("비밀번호는 6자 이상 입력해주세요.");
+      return;
+    }
+
+    alert("회원가입 중 오류가 발생했습니다.");
+  } finally {
+    setSignupLoading(false);
+  }
+};
   return (
     <main className="min-h-screen bg-white px-6 pt-36 pb-20">
       <div className="mx-auto max-w-3xl">
@@ -260,53 +420,91 @@ export default function SignupPage() {
         )}
 
         {step === 2 && (
-          <section>
-            <h2 className="mb-6 text-xl font-bold">본인 인증방법 선택</h2>
+  <section>
+    <h2 className="mb-6 text-xl font-bold">
+      휴대폰 본인인증
+    </h2>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => alert("아이핀 인증은 준비중입니다.")}
-                className="h-16 rounded-xl border-2 font-bold text-red-500"
-              >
-                아이핀 본인인증
-              </button>
+    <p className="mb-6 text-sm leading-6 text-gray-500">
+      회원가입을 위해 본인 명의의 휴대폰으로 인증해주세요.
+    </p>
 
-              <button onClick={fakeVerify} className="h-16 rounded-xl bg-black font-bold text-white">
-                휴대폰 본인인증
-              </button>
-            </div>
+    <button
+      type="button"
+      onClick={handleNiceVerify}
+      className="h-16 w-full rounded-xl bg-black font-bold text-white"
+    >
+      휴대폰 본인인증
+    </button>
 
-            {verified && <p className="mt-5 text-sm font-bold text-green-600">본인인증이 완료되었습니다.</p>}
+    {verified && (
+      <p className="mt-5 text-sm font-bold text-green-600">
+        본인인증이 완료되었습니다.
+      </p>
+    )}
 
-            <button
-              disabled={!verified}
-              onClick={() => setStep(3)}
-              className={`mt-10 w-full rounded-xl py-4 font-bold ${
-                verified ? "bg-black text-white" : "bg-gray-300 text-gray-500"
-              }`}
-            >
-              다음
-            </button>
-          </section>
-        )}
+    <button
+      type="button"
+      disabled={!verified}
+      onClick={() => setStep(3)}
+      className={`mt-10 w-full rounded-xl py-4 font-bold ${
+        verified
+          ? "bg-black text-white"
+          : "bg-gray-300 text-gray-500"
+      }`}
+    >
+      다음
+    </button>
+  </section>
+)}
 
         {step === 3 && (
   <section className="space-y-4">
-    <Input placeholder="성함 *" />
+    <Input
+      placeholder="성함 *"
+      value={name}
+      onChange={setName}
+    />
 
-    <Input placeholder="연락처 *" />
+    <Input
+      placeholder="연락처 *"
+      value={phone}
+      onChange={setPhone}
+      inputMode="tel"
+    />
 
-    <Input placeholder="이메일 *" />
+    <Input
+      placeholder="이메일 *"
+      value={email}
+      onChange={setEmail}
+      type="email"
+    />
 
-    <Input placeholder="비밀번호 *" type="password" />
+    <Input
+      placeholder="비밀번호 *"
+      value={password}
+      onChange={setPassword}
+      type="password"
+    />
 
-    <Input placeholder="비밀번호 확인 *" type="password" />
+    <Input
+      placeholder="비밀번호 확인 *"
+      value={passwordConfirm}
+      onChange={setPasswordConfirm}
+      type="password"
+    />
 
     <button
-      onClick={() => setStep(4)}
-      className="mt-8 w-full rounded-xl bg-black py-4 font-bold text-white"
+      type="button"
+      onClick={handleSignup}
+      disabled={signupLoading}
+      className={`mt-8 w-full rounded-xl py-4 font-bold ${
+        signupLoading
+          ? "cursor-not-allowed bg-gray-300 text-gray-500"
+          : "bg-black text-white"
+      }`}
     >
-      회원가입
+      {signupLoading ? "가입 처리 중..." : "회원가입"}
     </button>
   </section>
 )}

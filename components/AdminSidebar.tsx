@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const menus = [
   { name: "대시보드", href: "/admin" },
   { name: "문의 관리", href: "/admin/inquiries" },
+{ name: "고객 관리", href: "/admin/customers" },
   { name: "가이드 배너", href: "/admin/guide-banners" },
   { name: "포트폴리오", href: "/admin/portfolio" },
   { name: "팝업 관리", href: "/admin/popup" },
