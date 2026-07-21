@@ -41,21 +41,16 @@ const [signupLoading, setSignupLoading] = useState(false);
     setAgreeKakao(checked);
   };
 useEffect(() => {
-  const handleNiceMessage = async (event: MessageEvent) => {
-    if (event.origin !== window.location.origin) return;
+  let processing = false;
 
-    if (event.data?.type !== "NICE_AUTH_COMPLETE") return;
-
-    const webTransactionId = event.data.webTransactionId;
-
-    if (!webTransactionId) {
-      alert("본인인증 결과값을 찾지 못했습니다.");
-      return;
-    }
+  const processNiceResult = async (webTransactionId: string) => {
+    if (processing) return;
+    processing = true;
 
     const saved = sessionStorage.getItem("niceVerification");
 
     if (!saved) {
+      processing = false;
       alert("본인인증 요청 정보를 찾지 못했습니다.");
       return;
     }
@@ -84,23 +79,62 @@ useEffect(() => {
           data.message ||
             "본인인증 결과를 확인하지 못했습니다."
         );
+
+        processing = false;
         return;
       }
 
       setVerified(true);
-      setStep(3);
+
+      // 인증 완료 상태를 보여준 뒤 사용자가 '다음'을 누르게 함
+      // 자동으로 3단계 이동하려면 아래 줄 주석 해제
+      // setStep(3);
 
       sessionStorage.removeItem("niceVerification");
+      localStorage.removeItem("niceAuthCallback");
     } catch (error) {
       console.error("NICE 결과 확인 오류:", error);
       alert("본인인증 결과 확인 중 오류가 발생했습니다.");
+      processing = false;
+    }
+  };
+
+  const handleNiceMessage = (event: MessageEvent) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== "NICE_AUTH_COMPLETE") return;
+
+    const webTransactionId = event.data.webTransactionId;
+
+    if (webTransactionId) {
+      void processNiceResult(webTransactionId);
+    }
+  };
+
+  const checkStoredCallback = () => {
+    const stored = localStorage.getItem("niceAuthCallback");
+
+    if (!stored) return;
+
+    try {
+      const callback = JSON.parse(stored);
+
+      if (callback.webTransactionId) {
+        void processNiceResult(callback.webTransactionId);
+      }
+    } catch {
+      localStorage.removeItem("niceAuthCallback");
     }
   };
 
   window.addEventListener("message", handleNiceMessage);
+  window.addEventListener("focus", checkStoredCallback);
+
+  const interval = window.setInterval(checkStoredCallback, 1000);
 
   return () => {
     window.removeEventListener("message", handleNiceMessage);
+    window.removeEventListener("focus", checkStoredCallback);
+    window.clearInterval(interval);
   };
 }, []);
  const handleNiceVerify = async () => {
