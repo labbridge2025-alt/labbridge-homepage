@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -40,7 +40,69 @@ const [signupLoading, setSignupLoading] = useState(false);
     setAgreeSms(checked);
     setAgreeKakao(checked);
   };
+useEffect(() => {
+  const handleNiceMessage = async (event: MessageEvent) => {
+    if (event.origin !== window.location.origin) return;
 
+    if (event.data?.type !== "NICE_AUTH_COMPLETE") return;
+
+    const webTransactionId = event.data.webTransactionId;
+
+    if (!webTransactionId) {
+      alert("본인인증 결과값을 찾지 못했습니다.");
+      return;
+    }
+
+    const saved = sessionStorage.getItem("niceVerification");
+
+    if (!saved) {
+      alert("본인인증 요청 정보를 찾지 못했습니다.");
+      return;
+    }
+
+    try {
+      const verification = JSON.parse(saved);
+
+      const response = await fetch("/api/nice/result", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          webTransactionId,
+          accessToken: verification.accessToken,
+          ticket: verification.ticket,
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log("NICE 인증 결과:", data);
+
+      if (!response.ok || !data.success) {
+        alert(
+          data.message ||
+            "본인인증 결과를 확인하지 못했습니다."
+        );
+        return;
+      }
+
+      setVerified(true);
+      setStep(3);
+
+      sessionStorage.removeItem("niceVerification");
+    } catch (error) {
+      console.error("NICE 결과 확인 오류:", error);
+      alert("본인인증 결과 확인 중 오류가 발생했습니다.");
+    }
+  };
+
+  window.addEventListener("message", handleNiceMessage);
+
+  return () => {
+    window.removeEventListener("message", handleNiceMessage);
+  };
+}, []);
  const handleNiceVerify = async () => {
   try {
     const popup = window.open(
