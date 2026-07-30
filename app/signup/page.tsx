@@ -74,15 +74,19 @@ if (!saved) {
 
       console.log("NICE 인증 결과:", data);
 
-      if (!response.ok || !data.success) {
-        alert(
-          data.message ||
-            "본인인증 결과를 확인하지 못했습니다."
-        );
+     if (!response.ok || !data.success) {
+  localStorage.removeItem("niceAuthCallback");
+  sessionStorage.removeItem("niceVerification");
 
-        processing = false;
-        return;
-      }
+  processing = false;
+
+  alert(
+    data.message ||
+      "본인인증 결과를 확인하지 못했습니다."
+  );
+
+  return;
+}
 
       setVerified(true);
 
