@@ -539,18 +539,18 @@ const handleSignup = async () => {
       </p>
     )}
 
-    <button
-      type="button"
-      disabled={!verified}
-      onClick={() => setStep(3)}
-      className={`mt-10 w-full rounded-xl py-4 font-bold ${
-        verified
-          ? "bg-black text-white"
-          : "bg-gray-300 text-gray-500"
-      }`}
-    >
-      다음
-    </button>
+<button
+  type="button"
+  disabled={!verified}
+  onClick={() => setStep(3)}
+  className={`mt-10 w-full rounded-xl py-4 font-bold ${
+    verified
+      ? "bg-black text-white"
+      : "bg-gray-300 text-gray-500"
+  }`}
+>
+  다음
+</button>
   </section>
 )}
 
