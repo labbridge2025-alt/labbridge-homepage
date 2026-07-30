@@ -47,13 +47,13 @@ useEffect(() => {
     if (processing) return;
     processing = true;
 
-    const saved = sessionStorage.getItem("niceVerification");
+const saved = sessionStorage.getItem("niceVerification");
 
-    if (!saved) {
-      processing = false;
-      alert("본인인증 요청 정보를 찾지 못했습니다.");
-      return;
-    }
+if (!saved) {
+  localStorage.removeItem("niceAuthCallback");
+  processing = false;
+  return;
+}
 
     try {
       const verification = JSON.parse(saved);
@@ -110,21 +110,28 @@ useEffect(() => {
     }
   };
 
-  const checkStoredCallback = () => {
-    const stored = localStorage.getItem("niceAuthCallback");
+const checkStoredCallback = () => {
+  const stored = localStorage.getItem("niceAuthCallback");
+  const verification = sessionStorage.getItem("niceVerification");
 
-    if (!stored) return;
+  if (!stored) return;
 
-    try {
-      const callback = JSON.parse(stored);
+  // 이전 인증 찌꺼기만 남아 있으면 삭제
+  if (!verification) {
+    localStorage.removeItem("niceAuthCallback");
+    return;
+  }
 
-      if (callback.webTransactionId) {
-        void processNiceResult(callback.webTransactionId);
-      }
-    } catch {
-      localStorage.removeItem("niceAuthCallback");
+  try {
+    const callback = JSON.parse(stored);
+
+    if (callback.webTransactionId) {
+      void processNiceResult(callback.webTransactionId);
     }
-  };
+  } catch {
+    localStorage.removeItem("niceAuthCallback");
+  }
+};
 
   window.addEventListener("message", handleNiceMessage);
   window.addEventListener("focus", checkStoredCallback);
