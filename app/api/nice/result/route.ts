@@ -7,14 +7,17 @@ const NICE_API_URL = "https://auth.niceid.co.kr";
 
 type NiceResultRequest = {
   webTransactionId?: string;
+  requestNo?: string;
+  transactionId?: string;
   accessToken?: string;
-  ticket?: string;
 };
 
 type NiceResultResponse = {
   result_code?: string;
   result_message?: string;
   request_no?: string;
+  enc_data?: string;
+  integrity_value?: string;
   data?: string;
 };
 
@@ -33,10 +36,16 @@ export async function POST(request: Request) {
     const body = (await request.json()) as NiceResultRequest;
 
     const webTransactionId = body.webTransactionId;
+    const requestNo = body.requestNo;
+    const transactionId = body.transactionId;
     const accessToken = body.accessToken;
-    const ticket = body.ticket;
 
-    if (!webTransactionId || !accessToken || !ticket) {
+    if (
+      !webTransactionId ||
+      !requestNo ||
+      !transactionId ||
+      !accessToken
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -47,31 +56,33 @@ export async function POST(request: Request) {
     }
 
     const clientId = getRequiredEnv("NICE_CLIENT_ID");
-console.log("NICE 결과조회 요청값:", {
-  clientId,
-  webTransactionId,
-  webTransactionIdLength: webTransactionId.length,
-  accessTokenLength: accessToken.length,
-  ticketLength: ticket.length,
-});
 
-const response = await fetch(
-  `${NICE_API_URL}/ido/intc/v1.0/auth/result`,
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-      "X-Intc-DevLang": "Linux/Node.js",
-    },
-    body: JSON.stringify({
-      client_id: clientId,
-      web_transaction_id: webTransactionId,
-      ticket: ticket,
-    }),
-    cache: "no-store",
-  }
-);
+    console.log("NICE 결과조회 요청값:", {
+      clientId,
+      requestNo,
+      transactionId,
+      webTransactionId,
+      accessTokenLength: accessToken.length,
+    });
+
+    const response = await fetch(
+      `${NICE_API_URL}/ido/intc/v1.0/auth/result`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          "X-Intc-DevLang": "Linux/Node.js",
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          request_no: requestNo,
+          transaction_id: transactionId,
+          web_transaction_id: webTransactionId,
+        }),
+        cache: "no-store",
+      }
+    );
 
     const data = (await response.json()) as NiceResultResponse;
 
@@ -90,12 +101,6 @@ const response = await fetch(
       );
     }
 
-    /*
-     * NICE 결과가 암호화되어 내려오는 경우
-     * data.data 복호화 과정이 추가로 필요합니다.
-     *
-     * 우선 응답 형태 확인을 위해 원본 구조를 반환합니다.
-     */
     return NextResponse.json({
       success: true,
       result: data,

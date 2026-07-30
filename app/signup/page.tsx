@@ -64,10 +64,11 @@ if (!saved) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          webTransactionId,
-          accessToken: verification.accessToken,
-          ticket: verification.ticket,
-        }),
+  webTransactionId,
+  requestNo: verification.requestNo,
+  transactionId: verification.transactionId,
+  accessToken: verification.accessToken,
+}),
       });
 
       const data = await response.json();
