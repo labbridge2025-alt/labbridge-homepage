@@ -18,15 +18,19 @@ export default function NiceReturnPage() {
       params.get("web_transaction_id") ||
       params.get("webTransactionId") ||
       params.get("web_transactionId");
+console.log("전달받은 webTransactionId:", webTransactionId);
+if (!response.ok || !data.success) {
+  localStorage.removeItem("niceAuthCallback");
+  sessionStorage.removeItem("niceVerification");
 
-    if (!webTransactionId) {
-      setMessage(
-        `결과값을 찾지 못했습니다.\n현재 주소: ${window.location.href}`
-      );
+  alert(
+    data.message ||
+      "본인인증 결과를 확인하지 못했습니다."
+  );
 
-      alert("본인인증 결과값을 찾지 못했습니다.");
-      return;
-    }
+  processing = false;
+  return;
+}
 
     const callbackData = {
       webTransactionId,

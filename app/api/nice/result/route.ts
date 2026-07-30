@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+returnimport { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +47,15 @@ export async function POST(request: Request) {
     }
 
     const clientId = getRequiredEnv("NICE_CLIENT_ID");
+console.log("NICE 결과조회 요청값:", {
+  clientId,
+  webTransactionId,
+  webTransactionIdLength: webTransactionId.length,
+  accessTokenLength: accessToken.length,
+  ticketLength: ticket.length,
+});
 
+const response = await fetch(
     const response = await fetch(
       `${NICE_API_URL}/ido/intc/v1.0/auth/result`,
       {
@@ -58,10 +66,10 @@ export async function POST(request: Request) {
           "X-Intc-DevLang": "Linux/Node.js",
         },
         body: JSON.stringify({
-          client_id: clientId,
-          web_transaction_id: webTransactionId,
-          ticket,
-        }),
+  client_id: clientId,
+  web_transaction_id: webTransactionId,
+  ticket: ticket,
+}),
         cache: "no-store",
       }
     );
