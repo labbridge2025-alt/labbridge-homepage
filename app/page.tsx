@@ -107,11 +107,10 @@ export default function Home() {
 {mobileMenuOpen && (
   <div className="absolute left-5 right-5 top-[88px] z-30 rounded-2xl bg-white p-6 shadow-2xl">
     <nav className="flex flex-col gap-5 text-[17px] font-semibold">
-  <a href="/about">회사소개</a>
   <a href="/products">제형보러가기</a>
   <a href="/containers">용기보러가기</a>
   <a href="/packages">패키지보러가기</a>
-  <a href="/process">진행절차</a>
+  <a href="/process">회사소개</a>
   <a href="/portfolio">포트폴리오</a>
   <a href="/boards">LAB MEMBERS</a>
   <a href="/estimate">문의하기</a>

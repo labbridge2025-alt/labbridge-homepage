@@ -36,9 +36,8 @@ export default function PopupAdminPage() {
 
   const pageOptions = [
     { label: "메인", value: "/" },
-    { label: "회사소개", value: "/about" },
     { label: "상품", value: "/products" },
-    { label: "진행절차", value: "/process" },
+    { label: "회사소개", value: "/process" },
     { label: "포트폴리오", value: "/portfolio" },
     { label: "문의하기", value: "/estimate" },
     { label: "전체 페이지", value: "all" },
