@@ -208,27 +208,6 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      {/* PROCESS INTRO */}
-      <section className="bg-[#111111] px-5 py-16 text-white sm:px-8 sm:py-24 lg:px-10 lg:py-36">
-        <div className="mx-auto flex max-w-[1320px] flex-col justify-between gap-8 sm:gap-12 lg:flex-row lg:items-end">
-          <div>
-            <p className="mb-5 text-[12px] font-semibold tracking-[0.16em] text-white/50 sm:mb-7 sm:text-sm">
-              HOW WE WORK
-            </p>
-
-            <h2 className="text-[34px] font-bold leading-[1.2] tracking-[-0.05em] sm:text-[50px] lg:text-[64px]">
-              하나의 제품을 위해
-              <br />
-              필요한 다섯 단계
-            </h2>
-          </div>
-
-          <p className="max-w-[490px] break-keep text-[15px] leading-[1.8] text-white/65 sm:text-[17px] sm:leading-[1.9]">
-            각 단계마다 필요한 업체를 따로 알아보지 않아도 됩니다. 상담부터
-            출고까지 전담 담당자가 진행 상황을 연결하고 관리합니다.
-          </p>
-        </div>
-      </section>
       {/* PROCESS IMAGE */}
 <section className="bg-white py-20">
   <div className="mx-auto max-w-[1000px] px-5">
