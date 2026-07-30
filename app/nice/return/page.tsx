@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 
 export default function NiceReturnPage() {
-  const [message, setMessage] = useState("본인인증 결과를 확인하고 있습니다.");
+  const [message, setMessage] = useState(
+    "본인인증 결과를 확인하고 있습니다."
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -18,19 +20,17 @@ export default function NiceReturnPage() {
       params.get("web_transaction_id") ||
       params.get("webTransactionId") ||
       params.get("web_transactionId");
-console.log("전달받은 webTransactionId:", webTransactionId);
-if (!response.ok || !data.success) {
-  localStorage.removeItem("niceAuthCallback");
-  sessionStorage.removeItem("niceVerification");
 
-  alert(
-    data.message ||
-      "본인인증 결과를 확인하지 못했습니다."
-  );
+    console.log("전달받은 webTransactionId:", webTransactionId);
 
-  processing = false;
-  return;
-}
+    if (!webTransactionId) {
+      setMessage(
+        `결과값을 찾지 못했습니다.\n현재 주소: ${window.location.href}`
+      );
+
+      alert("본인인증 결과값을 찾지 못했습니다.");
+      return;
+    }
 
     const callbackData = {
       webTransactionId,
@@ -46,12 +46,12 @@ if (!response.ok || !data.success) {
 
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage(
-  {
-    type: "NICE_AUTH_COMPLETE",
-    webTransactionId,
-  },
-  "https://labbridge.co.kr"
-);
+        {
+          type: "NICE_AUTH_COMPLETE",
+          webTransactionId,
+        },
+        "https://labbridge.co.kr"
+      );
 
       console.log("부모창으로 인증 완료 메시지 전송");
     } else {
