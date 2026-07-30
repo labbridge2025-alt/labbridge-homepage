@@ -229,79 +229,18 @@ export default function ProcessPage() {
           </p>
         </div>
       </section>
-
-      {/* PROCESS STEPS */}
-      <section>
-        {processSteps.map((item, index) => {
-          const Icon = item.icon;
-          const isReversed = index % 2 === 1;
-
-          return (
-            <article
-              key={item.step}
-              className="border-b border-black/10 bg-white"
-            >
-              <div
-                className={`mx-auto grid max-w-[1600px] grid-cols-1 lg:min-h-[760px] lg:grid-cols-2 ${
-                  isReversed ? "lg:[&>*:first-child]:order-2" : ""
-                }`}
-              >
-                <div className="relative h-[300px] overflow-hidden sm:h-[420px] lg:h-auto lg:min-h-full">
-                  <Image
-                    src={item.image}
-                    alt={item.imageAlt}
-                    fill
-                    className="object-cover transition duration-700 hover:scale-[1.02]"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-
-                  <div className="absolute left-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 backdrop-blur sm:left-10 sm:top-10 sm:h-14 sm:w-14">
-                    <Icon
-                      size={20}
-                      strokeWidth={1.5}
-                      className="sm:h-[23px] sm:w-[23px]"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center px-5 py-12 sm:px-8 sm:py-16 lg:px-16 lg:py-20 xl:px-24">
-                  <div className="max-w-[570px]">
-                    <p className="text-[12px] font-bold tracking-[0.14em] text-neutral-400 sm:text-sm">
-                      {item.step}
-                    </p>
-
-                    <h2 className="mt-4 break-keep text-[31px] font-bold leading-[1.28] tracking-[-0.045em] sm:mt-6 sm:text-[42px] lg:mt-7 lg:text-[50px]">
-                      {item.title}
-                    </h2>
-
-                    <p className="mt-5 break-keep text-[15px] leading-[1.8] text-neutral-600 sm:mt-7 sm:text-[17px] sm:leading-[1.9]">
-                      {item.description}
-                    </p>
-
-                    <div className="mt-7 border-t border-black/15 sm:mt-10">
-                      {item.details.map((detail) => (
-                        <div
-                          key={detail}
-                          className="flex items-start gap-3 border-b border-black/15 py-4 sm:gap-4 sm:py-5"
-                        >
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-black text-white">
-                            <Check size={12} strokeWidth={2.5} />
-                          </span>
-
-                          <p className="break-keep text-[14px] font-medium leading-[1.6] text-neutral-700 sm:text-[15px]">
-                            {detail}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-
+      {/* PROCESS IMAGE */}
+<section className="bg-white py-20">
+  <div className="mx-auto max-w-[1000px] px-5">
+    <Image
+      src="/process/process-all.png"
+      alt="랩브릿지 진행절차"
+      width={900}
+      height={2200}
+      className="w-full h-auto"
+    />
+  </div>
+</section>
       {/* FINAL CTA */}
       <section className="bg-[#f3f3f0] px-4 py-14 sm:px-8 sm:py-24 lg:px-10 lg:py-36">
         <div className="mx-auto max-w-[1320px]">
