@@ -42,12 +42,12 @@ export default function NiceReturnPage() {
 
     if (window.opener && !window.opener.closed) {
       window.opener.postMessage(
-        {
-          type: "NICE_AUTH_COMPLETE",
-          webTransactionId,
-        },
-        window.location.origin
-      );
+  {
+    type: "NICE_AUTH_COMPLETE",
+    webTransactionId,
+  },
+  "https://labbridge.co.kr"
+);
 
       console.log("부모창으로 인증 완료 메시지 전송");
     } else {
