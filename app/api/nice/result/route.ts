@@ -56,23 +56,22 @@ console.log("NICE 결과조회 요청값:", {
 });
 
 const response = await fetch(
-    const response = await fetch(
-      `${NICE_API_URL}/ido/intc/v1.0/auth/result`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          "X-Intc-DevLang": "Linux/Node.js",
-        },
-        body: JSON.stringify({
-  client_id: clientId,
-  web_transaction_id: webTransactionId,
-  ticket: ticket,
-}),
-        cache: "no-store",
-      }
-    );
+  `${NICE_API_URL}/ido/intc/v1.0/auth/result`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "X-Intc-DevLang": "Linux/Node.js",
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      web_transaction_id: webTransactionId,
+      ticket: ticket,
+    }),
+    cache: "no-store",
+  }
+);
 
     const data = (await response.json()) as NiceResultResponse;
 
