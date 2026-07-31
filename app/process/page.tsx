@@ -133,58 +133,7 @@ export default function ProcessPage() {
     />
   </div>
 </section>
-      {/* HERO */}
-      <section className="border-b border-black/10">
-        <div className="mx-auto grid max-w-[1500px] grid-cols-1 lg:min-h-[760px] lg:grid-cols-2">
-          <div className="flex items-center px-5 pb-14 pt-20 sm:px-8 sm:pb-20 sm:pt-24 lg:px-16 lg:py-24 xl:px-24">
-            <div className="max-w-[650px]">
-              <p className="mb-5 text-[12px] font-semibold tracking-[0.18em] text-neutral-500 sm:mb-8 sm:text-sm">
-                LABBRIDGE PROCESS
-              </p>
-
-              <h1 className="text-[36px] font-bold leading-[1.18] tracking-[-0.05em] sm:text-[52px] lg:text-[66px] xl:text-[74px]">
-                아이디어가
-                <br />
-                제품이 되는 과정
-              </h1>
-
-              <p className="mt-6 max-w-[590px] break-keep text-[15px] leading-[1.75] text-neutral-600 sm:mt-8 sm:text-[18px] sm:leading-[1.9]">
-                제품 기획부터 제형, 용기, 디자인, 시험, 생산까지.
-                <br className="hidden sm:block" />
-                복잡한 화장품 제조 과정을 하나의 흐름으로 연결합니다.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-2 sm:mt-12 sm:gap-3">
-                <Link
-                  href="/estimate"
-                  className="inline-flex h-12 items-center gap-2 rounded-full bg-black px-5 text-[13px] font-semibold text-white transition hover:bg-neutral-800 sm:h-14 sm:gap-3 sm:px-7 sm:text-sm"
-                >
-                  제조 문의하기
-                  <ArrowRight size={16} />
-                </Link>
-
-                <Link
-                  href="/portfolio"
-                  className="inline-flex h-12 items-center rounded-full border border-black/25 px-5 text-[13px] font-semibold transition hover:bg-neutral-100 sm:h-14 sm:px-7 sm:text-sm"
-                >
-                  포트폴리오 보기
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative h-[320px] sm:h-[460px] lg:h-auto lg:min-h-full">
-            <Image
-              src="/process/process-hero.png"
-              alt="랩브릿지 화장품 제조 진행절차"
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
-        </div>
-      </section>
+    
 
       {/* CONCERNS */}
       <section className="px-5 py-16 sm:px-8 sm:py-24 lg:px-10 lg:py-36">
