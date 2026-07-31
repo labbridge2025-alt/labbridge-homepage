@@ -113,6 +113,26 @@ const processSteps = [
 export default function ProcessPage() {
   return (
     <main className="overflow-hidden bg-white text-[#111111]">
+{/* PROCESS IMAGE */}
+<section className="bg-white">
+  <div className="mx-auto max-w-[1000px] px-5">
+    <Image
+      src="/process/process-top.png"
+      alt="랩브릿지 진행절차 안내"
+      width={900}
+      height={500}
+      className="block h-auto w-full"
+    />
+
+    <Image
+      src="/process/process-all.png"
+      alt="랩브릿지 진행절차"
+      width={900}
+      height={2200}
+      className="block h-auto w-full"
+    />
+  </div>
+</section>
       {/* HERO */}
       <section className="border-b border-black/10">
         <div className="mx-auto grid max-w-[1500px] grid-cols-1 lg:min-h-[760px] lg:grid-cols-2">
@@ -208,18 +228,6 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      {/* PROCESS IMAGE */}
-<section className="bg-white py-20">
-  <div className="mx-auto max-w-[1000px] px-5">
-    <Image
-      src="/process/process-all.png"
-      alt="랩브릿지 진행절차"
-      width={900}
-      height={2200}
-      className="w-full h-auto"
-    />
-  </div>
-</section>
       {/* FINAL CTA */}
       <section className="bg-[#f3f3f0] px-4 py-14 sm:px-8 sm:py-24 lg:px-10 lg:py-36">
         <div className="mx-auto max-w-[1320px]">
