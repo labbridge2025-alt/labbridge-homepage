@@ -36,13 +36,13 @@ export default function Header() {
         isHome ? "hidden md:block" : "block"
       }`}
     >
-      <div className="flex h-24 items-center justify-between px-6 lg:px-20">
+      <div className="flex h-[76px] items-center justify-between px-5 lg:h-24 lg:px-20">
         <button
           type="button"
           onClick={() => setOpen(!open)}
           className="lg:hidden"
         >
-          <Menu size={34} strokeWidth={1.8} />
+          <Menu size={28} strokeWidth={1.8} />
         </button>
 
         <a href="/" className="flex flex-1 justify-center lg:block lg:flex-none">
@@ -52,7 +52,7 @@ export default function Header() {
             width={180}
             height={60}
             priority
-            className="w-[155px] lg:w-[180px]"
+            className="w-[135px] lg:w-[180px]"
           />
         </a>
 
@@ -105,15 +105,15 @@ export default function Header() {
           </div>
         </nav>
 
-        <div className="flex items-center gap-4 lg:hidden">
-          <a href="/wish">
-            <Heart size={27} strokeWidth={1.9} />
-          </a>
+       <div className="flex items-center gap-4 lg:hidden">
+  <a href="/wish">
+    <Heart size={24} strokeWidth={1.9} />
+  </a>
 
-          <a href={userEmail ? "/mypage" : "/login"}>
-            <User size={27} strokeWidth={1.9} />
-          </a>
-        </div>
+  <a href={userEmail ? "/mypage" : "/login"}>
+    <User size={24} strokeWidth={1.9} />
+  </a>
+</div>
       </div>
 
       {open && (

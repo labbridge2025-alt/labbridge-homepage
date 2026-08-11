@@ -112,7 +112,7 @@ const processSteps = [
 
 export default function ProcessPage() {
   return (
-    <main className="overflow-hidden bg-white text-[#111111]">
+    <main className="overflow-hidden bg-white text-[#111111] pt-[120px] md:pt-0">
 {/* PROCESS IMAGE */}
 <section className="bg-white">
   <div className="mx-auto max-w-[1000px] px-5">
