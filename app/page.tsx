@@ -106,14 +106,16 @@ export default function Home() {
 {/* 모바일 메뉴 */}
 {mobileMenuOpen && (
   <div className="absolute left-5 right-5 top-[88px] z-30 rounded-2xl bg-white p-6 shadow-2xl">
-    <nav className="flex flex-col gap-5 text-[17px] font-semibold">
+<nav className="flex flex-col gap-5 text-[17px] font-semibold">
+  <a href="/process">회사소개</a>
   <a href="/products">제형보러가기</a>
   <a href="/containers">용기보러가기</a>
   <a href="/packages">패키지보러가기</a>
-  <a href="/process">회사소개</a>
   <a href="/portfolio">포트폴리오</a>
   <a href="/boards">LAB MEMBERS</a>
   <a href="/estimate">문의하기</a>
+  <a href="/wish">관심상품</a>
+  <a href="/mypage">내정보</a>
 </nav>
   </div>
 )}
@@ -185,20 +187,23 @@ export default function Home() {
         </section>
 
         <GuideSlider />
-                <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-4xl lg:text-6xl font-bold mb-10 lg:mb-20">
+
+        {/* SERVICE - PC/태블릿에서만 표시 */}
+        <section className="hidden md:block bg-white px-5 py-24 sm:px-8 lg:px-20 lg:py-40">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-10 text-4xl font-bold lg:mb-20 lg:text-6xl">
               SERVICE
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-10">
               {["제형", "용기", "부자재", "원료", "임상", "인허가"].map(
                 (item) => (
                   <div key={item} className="border p-6 lg:p-10">
-                    <h3 className="text-2xl lg:text-3xl font-bold mb-4">
+                    <h3 className="mb-4 text-2xl font-bold lg:text-3xl">
                       {item}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">
+
+                    <p className="leading-relaxed text-gray-600">
                       화장품 제조에 필요한 항목을 상담합니다.
                     </p>
                   </div>
@@ -208,16 +213,17 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-4xl lg:text-6xl font-bold mb-10 lg:mb-20">
+        {/* PROCESS - PC/태블릿에서만 표시 */}
+        <section className="hidden bg-gray-50 px-5 py-24 sm:px-8 md:block lg:px-20 lg:py-40">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-10 text-4xl font-bold lg:mb-20 lg:text-6xl">
               PROCESS
             </h2>
 
             <div className="relative">
-              <div className="hidden lg:block absolute top-[150px] left-0 right-0 h-px bg-gray-300" />
+              <div className="absolute left-0 right-0 top-[150px] hidden h-px bg-gray-300 lg:block" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 relative z-10">
+              <div className="relative z-10 grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-8">
                 {[
                   {
                     num: "01",
@@ -251,25 +257,25 @@ export default function Home() {
                   },
                 ].map((item) => (
                   <div key={item.num} className="group">
-                    <div className="relative bg-gray-50 mb-6 overflow-hidden">
+                    <div className="relative mb-6 overflow-hidden bg-gray-50">
                       <img
                         src={item.image}
                         alt={item.title}
-                        className="w-full aspect-[5/7] object-cover transition duration-500 group-hover:scale-105"
+                        className="aspect-[5/7] w-full object-cover transition duration-500 group-hover:scale-105"
                       />
                     </div>
 
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-gray-400 text-xl font-semibold">
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="text-xl font-semibold text-gray-400">
                         {item.num}
                       </span>
 
-                      <h3 className="text-2xl lg:text-3xl font-bold">
+                      <h3 className="text-2xl font-bold lg:text-3xl">
                         {item.title}
                       </h3>
                     </div>
 
-                    <p className="text-gray-500 leading-relaxed">
+                    <p className="leading-relaxed text-gray-500">
                       {item.desc}
                     </p>
                   </div>
@@ -279,26 +285,28 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-white">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+        {/* ABOUT LABBRIDGE */}
+        <section className="bg-white px-5 py-16 sm:px-8 md:py-24 lg:px-20 lg:py-40">
+          <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-20">
             <div>
-              <p className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6">
+              <p className="mb-4 text-[14px] font-semibold tracking-wide text-gray-500 lg:mb-6 lg:text-2xl">
                 ABOUT LABBRIDGE
               </p>
 
-              <h2 className="text-4xl lg:text-6xl font-bold leading-tight mb-6 lg:mb-10">
+              <h2 className="mb-6 text-[32px] font-bold leading-[1.25] tracking-[-1px] lg:mb-10 lg:text-6xl">
                 브랜드와 제조사를
                 <br />
                 연결하는 화장품 제조 플랫폼
               </h2>
 
-              <p className="text-lg lg:text-2xl leading-relaxed text-gray-600">
+              <p className="text-[16px] leading-[1.8] text-gray-600 lg:text-2xl">
                 랩브릿지는 제형, 용기, 부자재, 원료, 임상 및 인허가까지
+                <br className="hidden lg:block" />
                 화장품 제조에 필요한 과정을 한 번에 연결합니다.
               </p>
             </div>
 
-            <div className="relative h-[320px] lg:h-[500px] overflow-hidden rounded-2xl">
+            <div className="relative h-[320px] overflow-hidden rounded-2xl lg:h-[500px]">
               <Image
                 src="/images/about/about.png"
                 alt="About LabBridge"
@@ -309,14 +317,18 @@ export default function Home() {
           </div>
         </section>
 
+        {/* PORTFOLIO */}
         <HomePortfolio />
 
-        <section className="py-24 lg:py-40 px-5 sm:px-8 lg:px-20 bg-black text-white">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 lg:gap-0 items-start lg:items-center justify-between">
+        {/* CONTACT */}
+        <section className="bg-black px-5 py-20 text-white sm:px-8 lg:px-20 lg:py-40">
+          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 lg:flex-row lg:items-center lg:gap-0">
             <div>
-              <p className="text-lg lg:text-2xl mb-4 lg:mb-6">CONTACT US</p>
+              <p className="mb-4 text-lg lg:mb-6 lg:text-2xl">
+                CONTACT US
+              </p>
 
-              <h2 className="text-3xl lg:text-6xl font-bold leading-tight">
+              <h2 className="text-3xl font-bold leading-tight lg:text-6xl">
                 화장품 제조 상담이 필요하신가요?
               </h2>
             </div>
@@ -325,7 +337,7 @@ export default function Home() {
               href="https://pf.kakao.com/_DXxcxon"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 lg:px-16 py-4 lg:py-8 border border-white text-lg lg:text-3xl font-semibold"
+              className="border border-white px-8 py-4 text-lg font-semibold lg:px-16 lg:py-8 lg:text-3xl"
             >
               문의하기
             </a>

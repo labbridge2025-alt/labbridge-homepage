@@ -119,7 +119,7 @@ export default function Header() {
       {open && (
         <div className="border-t bg-white px-6 py-6 lg:hidden">
           <nav className="flex flex-col gap-5 text-lg font-bold">
-            <a href="/about" onClick={() => setOpen(false)}>
+            <a href="/process" onClick={() => setOpen(false)}>
               회사소개
             </a>
             <a href="/products" onClick={() => setOpen(false)}>
@@ -131,9 +131,6 @@ export default function Header() {
 <a href="/packages" onClick={() => setOpen(false)}>
   패키지보러가기
 </a>
-            <a href="/process" onClick={() => setOpen(false)}>
-              진행절차
-            </a>
             <a href="/portfolio" onClick={() => setOpen(false)}>
               포트폴리오
             </a>
