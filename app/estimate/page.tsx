@@ -9,6 +9,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import Header from "@/components/Header";
 
 export default function EstimatePage() {
@@ -31,7 +32,9 @@ export default function EstimatePage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
+const [submitted, setSubmitted] = useState(false);
   const formulas = ["스킨케어", "앰플", "크림", "클렌징폼", "바디", "헤어", "색조", "선케어"];
   const containers = ["튜브", "에어리스", "앰플병", "크림용기", "펌프", "미스트", "스틱", "쿠션"];
   const packages = ["단상자", "라벨", "실크인쇄", "박스+라벨", "금박", "은박", "스티커", "없음"];
@@ -106,46 +109,132 @@ setSelectedProducts(selectedItems.filter(Boolean));
       return;
     }
 
-    await addDoc(collection(db, "inquiries"), {
-      company,
-      name,
-      phone,
-      email,
-      selectedProducts: selectedProducts.map((item) => ({
-        id: item.id,
-        name: item.name || "",
-        category: item.category || "",
-        moq: item.moq || "",
-        unitPrice: item.unitPrice || "",
-        image: item.image || "",
-      })),
-      formula,
-      container,
-      packageType,
-      quantity,
-      budget,
-      dueDate,
-      country,
-      containerDev,
-      packageDesign,
-      responsible,
-      targetLink,
-      memo,
-      fileName: file ? file.name : "",
-      createdAt: serverTimestamp(),
-    });
+    if (isSubmitting) return;
 
-    alert(
-      "문의가 정상적으로 접수되었습니다.\n\n영업일 기준 1~3일 이내에 담당자가 연락드릴 예정입니다."
-    );
+    try {
+      setIsSubmitting(true);
 
-    window.open("https://pf.kakao.com/_DXxcxon/chat", "_blank");
+      let fileName = "";
+      let fileUrl = "";
+      let filePath = "";
+
+      // 첨부파일이 있으면 Firebase Storage에 실제 파일을 업로드합니다.
+      if (file) {
+        const storage = getStorage();
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9가-힣._-]/g, "_");
+        filePath = `inquiries/${Date.now()}_${safeFileName}`;
+        const storageRef = ref(storage, filePath);
+
+        await uploadBytes(storageRef, file);
+        fileUrl = await getDownloadURL(storageRef);
+        fileName = file.name;
+      }
+
+      await addDoc(collection(db, "inquiries"), {
+        company,
+        name,
+        phone,
+        email,
+        selectedProducts: selectedProducts.map((item) => ({
+          id: item.id,
+          name: item.name || "",
+          category: item.category || "",
+          moq: item.moq || "",
+          unitPrice: item.unitPrice || "",
+          image: item.image || "",
+        })),
+        formula,
+        container,
+        packageType,
+        quantity,
+        budget,
+        dueDate,
+        country,
+        containerDev,
+        packageDesign,
+        responsible,
+        targetLink,
+        memo,
+        fileName,
+        fileUrl,
+        filePath,
+        createdAt: serverTimestamp(),
+      });
+
+      // 카카오톡으로 이동하지 않고 접수 완료 안내를 띄웁니다.
+      setSubmitted(true);
+
+window.scrollTo({
+  top: 0,
+  behavior: "smooth",
+});
+    } catch (error) {
+      console.error("견적 문의 등록 실패:", error);
+      alert("견적 요청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsSubmitting(false);
+       }
   };
+
+  if (submitted) {
+    return (
+      <>
+        <Header />
+
+        <main className="min-h-[75vh] flex items-center justify-center px-6 pt-24">
+          <div className="text-center max-w-xl">
+            <div className="w-20 h-20 mx-auto mb-8 rounded-full bg-black text-white flex items-center justify-center text-4xl">
+              ✓
+            </div>
+
+            <h1 className="text-4xl font-bold mb-5">
+              견적 요청이 완료되었습니다.
+            </h1>
+
+            <p className="text-gray-600 text-lg leading-8">
+              문의해 주셔서 감사합니다.
+              <br />
+              보내주신 내용을 확인한 후
+              <br />
+              <strong className="text-black">
+                영업일 기준 3일 이내
+              </strong>
+              에 담당자가 답변드리겠습니다.
+            </p>
+
+            <div className="mt-10 flex items-center justify-center gap-3">
+  <button
+    type="button"
+    onClick={() => {
+      window.location.href = "/";
+    }}
+    className="bg-black text-white px-8 py-4 rounded-xl font-bold"
+  >
+    홈으로 돌아가기
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      window.open(
+        "https://pf.kakao.com/_DXxcxon/chat",
+        "_blank"
+      );
+    }}
+    className="bg-[#FEE500] text-black px-8 py-4 rounded-xl font-bold"
+  >
+    카카오 상담하기
+  </button>
+</div>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
-
       <main className="pt-40 pb-40">
         <div className="max-w-6xl mx-auto px-10">
           <h1 className="text-4xl font-bold text-center mb-16">상담문의</h1>
@@ -355,13 +444,33 @@ setSelectedProducts(selectedItems.filter(Boolean));
           <div className="mt-12 border-t pt-10">
             <button
               onClick={submitInquiry}
-              className="w-full bg-black text-white py-5 text-xl font-bold rounded-xl"
+              disabled={isSubmitting}
+              className="w-full bg-black text-white py-5 text-xl font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              견적 요청하기
+              {isSubmitting ? "접수 중..." : "견적 요청하기"}
             </button>
           </div>
         </div>
       </main>
+
+      {showComplete && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-5">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+            <h2 className="mb-4 text-2xl font-bold">견적 요청이 완료되었습니다.</h2>
+            <p className="mb-7 leading-7 text-gray-600">
+              문의해 주셔서 감사합니다.<br />
+              담당자가 내용을 확인한 후 <strong>영업일 기준 3일 이내</strong> 답변드리겠습니다.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowComplete(false)}
+              className="w-full rounded-xl bg-black py-4 font-bold text-white"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

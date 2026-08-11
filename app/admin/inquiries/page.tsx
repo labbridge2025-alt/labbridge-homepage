@@ -30,6 +30,9 @@ type Inquiry = {
   status?: string;
   createdAt?: any;
   assignedTo?: string;
+    fileName?: string;
+  fileUrl?: string;
+  filePath?: string;
 };
 
 type Staff = {
@@ -290,7 +293,68 @@ export default function AdminInquiriesPage() {
                   {selected.memo || "-"}
                 </p>
               </div>
+<div className="border-t pt-5">
+  <p className="font-bold mb-3">첨부파일</p>
 
+  {selected.fileUrl ? (
+    <div className="space-y-4">
+
+      {/* 이미지 파일이면 미리보기 */}
+      {selected.fileName &&
+        /\.(jpg|jpeg|png|gif|webp)$/i.test(selected.fileName) && (
+          <div className="border rounded-xl bg-gray-50 p-3">
+            <img
+              src={selected.fileUrl}
+              alt={selected.fileName}
+              className="w-full max-h-[400px] object-contain rounded-lg"
+            />
+          </div>
+        )}
+
+      {/* 파일 정보 */}
+      <div className="flex items-center justify-between gap-4 border rounded-xl p-4">
+        <div className="min-w-0">
+          <p className="font-semibold break-all">
+            {selected.fileName || "첨부파일"}
+          </p>
+        </div>
+
+        <div className="flex gap-2 shrink-0">
+          <a
+            href={selected.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border px-4 py-2 rounded-lg font-semibold hover:bg-gray-50"
+          >
+            파일 열기
+          </a>
+
+          <a
+            href={selected.fileUrl}
+            download={selected.fileName || true}
+            className="bg-black text-white px-4 py-2 rounded-lg font-semibold"
+          >
+            다운로드
+          </a>
+        </div>
+      </div>
+    </div>
+  ) : selected.fileName ? (
+    <div className="border rounded-xl p-4 bg-gray-50">
+      <p className="font-semibold break-all">
+        {selected.fileName}
+      </p>
+
+      <p className="text-xs text-gray-400 mt-2">
+        기존 문의는 파일명만 저장되어 있어 원본 파일을 확인할 수 없습니다.
+      </p>
+    </div>
+  ) : (
+    <p className="text-gray-400">
+      첨부된 파일이 없습니다.
+    </p>
+  )}
+</div>
               <div className="border-t pt-5">
                 <p className="font-bold mb-3">담당 직원</p>
 

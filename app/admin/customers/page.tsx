@@ -44,7 +44,44 @@ type Member = {
     kakaoMarketing?: boolean;
   };
 };
+type Inquiry = {
+  id: string;
+  company?: string;
+  name?: string;
+  phone?: string;
+  email?: string;
 
+  formula?: string;
+  container?: string;
+  packageType?: string;
+  quantity?: string;
+  budget?: string;
+  dueDate?: string;
+  country?: string;
+
+  containerDev?: string;
+  packageDesign?: string;
+  responsible?: string;
+  targetLink?: string;
+
+  memo?: string;
+  status?: string;
+  createdAt?: any;
+
+  fileName?: string;
+  fileUrl?: string;
+  filePath?: string;
+
+  selectedProducts?: {
+    id?: string;
+    type?: string;
+    name?: string;
+    category?: string;
+    moq?: string;
+    unitPrice?: string;
+    image?: string;
+  }[];
+};
 function getDateValue(value?: FirestoreDate) {
   if (!value) return 0;
 
@@ -90,7 +127,7 @@ export default function AdminCustomersPage() {
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-
+const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -116,10 +153,26 @@ export default function AdminCustomersPage() {
     }
   };
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
+useEffect(() => {
+  fetchMembers();
+  fetchInquiries();
+}, []);
+const fetchInquiries = async () => {
+  try {
+    const snapshot = await getDocs(
+      collection(db, "inquiries")
+    );
 
+    const inquiryList = snapshot.docs.map((inquiryDoc) => ({
+      id: inquiryDoc.id,
+      ...inquiryDoc.data(),
+    })) as Inquiry[];
+
+    setInquiries(inquiryList);
+  } catch (error) {
+    console.error("문의내역 불러오기 실패:", error);
+  }
+};
   const filteredMembers = useMemo(() => {
     const keyword = searchKeyword
       .trim()
@@ -420,6 +473,254 @@ export default function AdminCustomersPage() {
                 />
               </div>
             </div>
+            <div className="mt-5 rounded-2xl border border-gray-300 p-5">
+  <h3 className="mb-5 text-lg font-bold">
+    문의 이력
+  </h3>
+
+  {(() => {
+    const memberEmail = String(
+      selectedMember.email || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const memberPhone = String(
+      selectedMember.phone || ""
+    ).replace(/\D/g, "");
+
+    const memberInquiries = inquiries
+      .filter((inquiry) => {
+        const inquiryEmail = String(
+          inquiry.email || ""
+        )
+          .trim()
+          .toLowerCase();
+
+        const inquiryPhone = String(
+          inquiry.phone || ""
+        ).replace(/\D/g, "");
+
+        const emailMatch =
+          memberEmail &&
+          inquiryEmail &&
+          memberEmail === inquiryEmail;
+
+        const phoneMatch =
+          memberPhone &&
+          inquiryPhone &&
+          memberPhone === inquiryPhone;
+
+        return emailMatch || phoneMatch;
+      })
+      .sort(
+        (a, b) =>
+          getDateValue(b.createdAt) -
+          getDateValue(a.createdAt)
+      );
+
+    if (memberInquiries.length === 0) {
+      return (
+        <div className="rounded-xl bg-gray-50 p-5 text-center text-sm text-gray-400">
+          접수된 문의가 없습니다.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-500">
+          총{" "}
+          <strong className="text-black">
+            {memberInquiries.length}건
+          </strong>
+          의 문의가 있습니다.
+        </p>
+
+        {memberInquiries.map((inquiry, index) => (
+          <details
+            key={inquiry.id}
+            className="overflow-hidden rounded-xl border border-gray-200"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between bg-gray-50 p-4">
+              <div>
+                <p className="font-bold">
+                  견적 문의 {memberInquiries.length - index}
+                </p>
+
+                <p className="mt-1 text-xs text-gray-500">
+                  {formatDate(inquiry.createdAt)}
+                </p>
+              </div>
+
+              <span className="rounded-lg border bg-white px-3 py-1 text-xs font-semibold">
+                {inquiry.status || "신규"}
+              </span>
+            </summary>
+
+            <div className="space-y-5 p-4">
+
+              {/* 관심상품에서 담은 제품 */}
+              {inquiry.selectedProducts &&
+                inquiry.selectedProducts.length > 0 && (
+                  <div>
+                    <p className="mb-3 text-sm font-bold">
+                      담은 제품
+                    </p>
+
+                    <div className="space-y-2">
+                      {inquiry.selectedProducts.map(
+                        (product, productIndex) => (
+                          <div
+                            key={`${inquiry.id}-${productIndex}`}
+                            className="flex gap-3 rounded-xl bg-gray-50 p-3"
+                          >
+                            {product.image && (
+                              <img
+                                src={product.image}
+                                alt={product.name || "제품"}
+                                className="h-14 w-14 rounded-lg object-cover"
+                              />
+                            )}
+
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold">
+                                {product.type
+                                  ? `[${product.type}] `
+                                  : ""}
+                                {product.name || "-"}
+                              </p>
+
+                              {product.category && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {product.category}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+              <div className="space-y-3">
+                <InfoRow
+                  label="제형"
+                  value={inquiry.formula}
+                />
+
+                <InfoRow
+                  label="용기"
+                  value={inquiry.container}
+                />
+
+                <InfoRow
+                  label="패키지"
+                  value={inquiry.packageType}
+                />
+
+                <InfoRow
+                  label="수량"
+                  value={inquiry.quantity}
+                />
+
+                <InfoRow
+                  label="예산"
+                  value={inquiry.budget}
+                />
+
+                <InfoRow
+                  label="출고희망일"
+                  value={inquiry.dueDate}
+                />
+
+                <InfoRow
+                  label="판매국가"
+                  value={inquiry.country}
+                />
+              </div>
+
+              {/* 문의사항 */}
+              <div className="border-t pt-4">
+                <p className="mb-2 text-sm font-bold">
+                  문의사항
+                </p>
+
+                <p className="whitespace-pre-line text-sm leading-6 text-gray-600">
+                  {inquiry.memo || "-"}
+                </p>
+              </div>
+
+              {/* 타겟 링크 */}
+              {inquiry.targetLink && (
+                <div className="border-t pt-4">
+                  <p className="mb-2 text-sm font-bold">
+                    제품 타겟 링크
+                  </p>
+
+                  <a
+                    href={inquiry.targetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block break-all text-sm text-blue-600 underline"
+                  >
+                    {inquiry.targetLink}
+                  </a>
+                </div>
+              )}
+
+              {/* 첨부파일 */}
+              <div className="border-t pt-4">
+                <p className="mb-3 text-sm font-bold">
+                  첨부파일
+                </p>
+
+                {inquiry.fileUrl ? (
+                  <div className="space-y-3">
+                    {inquiry.fileName &&
+                      /\.(jpg|jpeg|png|gif|webp)$/i.test(
+                        inquiry.fileName
+                      ) && (
+                        <img
+                          src={inquiry.fileUrl}
+                          alt={
+                            inquiry.fileName ||
+                            "첨부파일"
+                          }
+                          className="max-h-[250px] w-full rounded-xl border bg-gray-50 object-contain"
+                        />
+                      )}
+
+                    <a
+                      href={inquiry.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-lg bg-black px-4 py-3 text-center text-sm font-bold text-white"
+                    >
+                      {inquiry.fileName
+                        ? `${inquiry.fileName} 열기`
+                        : "첨부파일 열기"}
+                    </a>
+                  </div>
+                ) : inquiry.fileName ? (
+                  <p className="text-xs text-gray-400">
+                    {inquiry.fileName} — 기존 문의로
+                    원본 파일이 저장되어 있지 않습니다.
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400">
+                    첨부된 파일이 없습니다.
+                  </p>
+                )}
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
+    );
+  })()}
+</div>
           </aside>
         </div>
       )}
