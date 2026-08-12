@@ -57,10 +57,10 @@ export default function Header() {
         </a>
 
         <nav className="hidden items-center gap-8 text-lg font-bold lg:flex">
+          <a href="/process">회사소개</a>
           <a href="/products">제형보러가기</a>
           <a href="/containers">용기보러가기</a>
 <a href="/packages">패키지보러가기</a>
-          <a href="/process">회사소개</a>
           <a href="/portfolio">포트폴리오</a>
           <a href="/estimate">문의하기</a>
 
