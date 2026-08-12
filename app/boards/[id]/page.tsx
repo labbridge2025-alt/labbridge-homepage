@@ -80,7 +80,10 @@ export default function BoardDetailPage() {
         </div>
 
         <div
-  className="prose prose-neutral mt-10 max-w-none"
+  className="prose prose-neutral mt-10 max-w-none whitespace-pre-wrap
+             [&_p]:mb-6
+             [&_p]:leading-8
+             [&_br]:block"
   dangerouslySetInnerHTML={{
     __html: board.content || "<p>내용이 없습니다.</p>",
   }}
