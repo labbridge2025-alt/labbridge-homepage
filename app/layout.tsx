@@ -15,8 +15,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LABBRIDGE",
-  description: "LABBRIDGE Cosmetic Platform",
+  metadataBase: new URL("https://labbridge.co.kr"),
+
+  title: "LABBRIDGE | 화장품 OEM ODM 제조 플랫폼",
+
+  description:
+    "화장품 OEM·ODM 개발부터 제형, 용기, 패키지까지 한 번에 확인할 수 있는 LABBRIDGE 화장품 제조 플랫폼입니다.",
+
+  openGraph: {
+    title: "LABBRIDGE | 화장품 OEM ODM 제조 플랫폼",
+    description:
+      "화장품 OEM·ODM 개발부터 제형, 용기, 패키지까지 한 번에 확인할 수 있는 LABBRIDGE 화장품 제조 플랫폼입니다.",
+    url: "https://labbridge.co.kr",
+    siteName: "LABBRIDGE",
+    locale: "ko_KR",
+    type: "website",
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
