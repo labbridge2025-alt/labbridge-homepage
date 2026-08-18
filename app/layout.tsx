@@ -22,12 +22,12 @@ export const metadata: Metadata = {
   description:
     "화장품 OEM·ODM 개발부터 제형, 용기, 패키지까지 한 번에 확인할 수 있는 LABBRIDGE 화장품 제조 플랫폼입니다.",
 
-  verification: {
-    other: {
-      "naver-site-verification":
-        "363785e49163616868ecc8c8b682bfd3f1b64a73",
-    },
+verification: {
+  other: {
+    "naver-site-verification":
+      "9206a188863f0beac1bd0fa1040da5f422081aab",
   },
+},
 
   openGraph: {
     title: "LABBRIDGE | 화장품 OEM ODM 제조 플랫폼",
