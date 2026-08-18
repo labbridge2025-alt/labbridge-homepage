@@ -90,7 +90,49 @@ export default function BoardDetailPage() {
     const slides: Slide[] = [];
 
     let pendingText: string[] = [];
-    let currentSlide: Slide | null = null;
+    type Slide = {
+  imageUrl: string;
+  text: string[];
+};
+
+const slides: Slide[] = [];
+
+let currentSlide: Slide | null = null;
+let pendingText: string[] = [];
+
+elements.forEach((element) => {
+  if (element.tagName === "IMG") {
+    const image = element as HTMLImageElement;
+
+    if (currentSlide) {
+      slides.push(currentSlide);
+    }
+
+    currentSlide = {
+      imageUrl: image.src,
+      text: [...pendingText],
+    };
+
+    pendingText = [];
+    return;
+  }
+
+  const text = element.textContent?.trim();
+
+  if (!text) return;
+
+  if (currentSlide) {
+    currentSlide.text.push(text);
+  } else {
+    pendingText.push(text);
+  }
+});
+
+if (currentSlide) {
+  slides.push(currentSlide);
+}
+
+return slides;
 
     elements.forEach((element) => {
       const tag =
