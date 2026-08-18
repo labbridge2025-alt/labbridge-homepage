@@ -67,111 +67,66 @@ export default function BoardDetailPage() {
   -------------------------------- */
 
   const parsedSlides = useMemo(() => {
-    if (
-      !board?.content ||
-      typeof window === "undefined"
-    ) {
-      return [];
-    }
-
-    const parser = new DOMParser();
-
-    const html = parser.parseFromString(
-      board.content,
-      "text/html"
-    );
-
-    const elements = Array.from(
-      html.body.querySelectorAll(
-        "img, h1, h2, h3, h4, p, li, blockquote"
-      )
-    );
-
-    const slides: Slide[] = [];
-
-    let pendingText: string[] = [];
-    type Slide = {
-  imageUrl: string;
-  text: string[];
-};
-
-const slides: Slide[] = [];
-
-let currentSlide: Slide | null = null;
-let pendingText: string[] = [];
-
-elements.forEach((element) => {
-  if (element.tagName === "IMG") {
-    const image = element as HTMLImageElement;
-
-    if (currentSlide) {
-      slides.push(currentSlide);
-    }
-
-    currentSlide = {
-      imageUrl: image.src,
-      text: [...pendingText],
-    };
-
-    pendingText = [];
-    return;
+  if (
+    !board?.content ||
+    typeof window === "undefined"
+  ) {
+    return [];
   }
 
-  const text = element.textContent?.trim();
+  const parser = new DOMParser();
 
-  if (!text) return;
+  const html = parser.parseFromString(
+    board.content,
+    "text/html"
+  );
 
-  if (currentSlide) {
-    currentSlide.text.push(text);
-  } else {
-    pendingText.push(text);
-  }
-});
+  const elements = Array.from(
+    html.body.querySelectorAll(
+      "img, h1, h2, h3, h4, p, li, blockquote"
+    )
+  );
 
-if (currentSlide) {
-  slides.push(currentSlide);
-}
+  const slides: Slide[] = [];
+  let pendingText: string[] = [];
+  let currentSlide: Slide | null = null;
 
-return slides;
+  elements.forEach((element) => {
+    const tag = element.tagName.toLowerCase();
 
-    elements.forEach((element) => {
-      const tag =
-        element.tagName.toLowerCase();
-
-      if (tag === "img") {
-        const image = element as HTMLImageElement;
-
-        if (currentSlide?.imageUrl) {
-          slides.push(currentSlide);
-        }
-
-        currentSlide = {
-          imageUrl: image.src,
-          text: [...pendingText],
-        };
-
-        pendingText = [];
-        return;
-      }
-
-      const text =
-        element.textContent?.trim();
-
-      if (!text) return;
+    if (tag === "img") {
+      const image = element as HTMLImageElement;
 
       if (currentSlide) {
-        currentSlide.text.push(text);
-      } else {
-        pendingText.push(text);
+        slides.push(currentSlide);
       }
-    });
 
-    if (currentSlide?.imageUrl) {
-      slides.push(currentSlide);
+      currentSlide = {
+        imageUrl: image.src,
+        text: [...pendingText],
+      };
+
+      pendingText = [];
+      return;
     }
 
-    return slides;
-  }, [board]);
+    const text = element.textContent?.trim();
+
+    if (!text) return;
+
+    if (currentSlide) {
+      currentSlide.text.push(text);
+    } else {
+      pendingText.push(text);
+    }
+  });
+
+  if (currentSlide) {
+    slides.push(currentSlide);
+  }
+
+  return slides;
+}, [board]);
 
   /*
     나중에 관리자에서 slides 배열을
