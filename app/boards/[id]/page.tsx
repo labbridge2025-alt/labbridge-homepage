@@ -1,108 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  useParams,
+  useRouter,
+} from "next/navigation";
 
 import {
   doc,
   getDoc,
-  serverTimestamp,
-  updateDoc,
 } from "firebase/firestore";
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
+import { db } from "@/lib/firebase";
 
-import { db, storage } from "@/lib/firebase";
-
-const categories = [
-  "원료자료",
-  "가이드라인",
-  "트렌드자료",
-  "공지사항",
-  "FAQ",
-  "기타",
-];
-
-type SlideInput = {
+type Slide = {
   imageUrl: string;
-  imageFile: File | null;
-  previewUrl: string;
-  title: string;
-  description: string;
+  text: string[];
 };
 
-const createEmptySlide = (): SlideInput => ({
-  imageUrl: "",
-  imageFile: null,
-  previewUrl: "",
-  title: "",
-  description: "",
-});
-
-export default function AdminBoardEditPage() {
-  const router = useRouter();
+export default function BoardDetailPage() {
   const params = useParams();
+  const router = useRouter();
 
   const id = params.id as string;
 
-  const [category, setCategory] = useState("원료자료");
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [keywords, setKeywords] = useState("");
-
-  const [isPublished, setIsPublished] = useState(true);
-
-  /* --------------------------------
-     목록 대표 이미지
-  -------------------------------- */
-
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [thumbnailFile, setThumbnailFile] =
-    useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] =
-    useState("");
-
-  /* --------------------------------
-     카드 콘텐츠
-  -------------------------------- */
-
-  const [slides, setSlides] =
-    useState<SlideInput[]>([]);
-
-  /* --------------------------------
-     첨부파일
-  -------------------------------- */
-
-  const [existingFiles, setExistingFiles] =
-    useState<any[]>([]);
-
-  const [files, setFiles] =
-    useState<File[]>([]);
-
-  /* --------------------------------
-     기존 content 보존
-  -------------------------------- */
-
-  const [originalContent, setOriginalContent] =
-    useState("");
+  const [board, setBoard] =
+    useState<any>(null);
 
   const [loading, setLoading] =
-    useState(false);
-
-  const [pageLoading, setPageLoading] =
     useState(true);
 
+  const [
+    currentIndex,
+    setCurrentIndex,
+  ] = useState(0);
+
+  const touchStartX =
+    useRef<number | null>(null);
+
   /* =================================
-     기존 게시글 불러오기
+     게시글 불러오기
   ================================= */
 
   useEffect(() => {
     const loadBoard = async () => {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const snap = await getDoc(
@@ -110,1078 +61,833 @@ export default function AdminBoardEditPage() {
         );
 
         if (!snap.exists()) {
-          alert("게시글을 찾을 수 없습니다.");
-          router.push("/admin/boards");
+          setLoading(false);
           return;
         }
 
-        const data: any = snap.data();
-
-        setCategory(
-          data.category || "원료자료"
-        );
-
-        setTitle(
-          data.title || ""
-        );
-
-        setSummary(
-          data.summary || ""
-        );
-
-        /* 대표 이미지 */
-
-        setThumbnailUrl(
-          data.thumbnailUrl || ""
-        );
-
-        setThumbnailPreview(
-          data.thumbnailUrl || ""
-        );
-
-        setKeywords(
-          (data.keywords || []).join(", ")
-        );
-
-        setIsPublished(
-          data.isPublished ?? true
-        );
-
-        setExistingFiles(
-          data.files || []
-        );
-
-        setOriginalContent(
-          data.content || ""
-        );
-
-        /* 기존 카드뉴스 */
-
-        if (
-          Array.isArray(data.slides) &&
-          data.slides.length > 0
-        ) {
-          setSlides(
-            data.slides.map(
-              (slide: any) => ({
-                imageUrl:
-                  slide.imageUrl || "",
-
-                imageFile: null,
-
-                previewUrl:
-                  slide.imageUrl || "",
-
-                title:
-                  slide.title || "",
-
-                description:
-                  slide.description || "",
-              })
-            )
-          );
-        } else {
-          setSlides([
-            createEmptySlide(),
-          ]);
-        }
+        setBoard({
+          id: snap.id,
+          ...snap.data(),
+        });
       } catch (error) {
         console.error(
           "게시글 불러오기 실패:",
           error
         );
-
-        alert(
-          "게시글을 불러오지 못했습니다."
-        );
       } finally {
-        setPageLoading(false);
+        setLoading(false);
       }
     };
 
     loadBoard();
-  }, [id, router]);
+  }, [id]);
 
   /* =================================
-     대표 이미지 변경
+     기존 HTML content에서
+     이미지 + 텍스트 자동 분리
   ================================= */
 
-  const handleThumbnailChange = (
-    file: File
-  ) => {
-    setThumbnailFile(file);
-
-    const preview =
-      URL.createObjectURL(file);
-
-    setThumbnailPreview(preview);
-  };
-
-  /* =================================
-     카드 추가
-  ================================= */
-
-  const addSlide = () => {
-    setSlides((prev) => [
-      ...prev,
-      createEmptySlide(),
-    ]);
-  };
-
-  /* =================================
-     카드 삭제
-  ================================= */
-
-  const removeSlide = (
-    index: number
-  ) => {
-    if (slides.length === 1) {
-      alert(
-        "카드는 최소 1개가 필요합니다."
-      );
-      return;
-    }
-
-    setSlides((prev) =>
-      prev.filter(
-        (_, i) => i !== index
-      )
-    );
-  };
-
-  /* =================================
-     카드 순서 위로
-  ================================= */
-
-  const moveSlideUp = (
-    index: number
-  ) => {
-    if (index === 0) return;
-
-    setSlides((prev) => {
-      const next = [...prev];
-
-      [next[index - 1], next[index]] = [
-        next[index],
-        next[index - 1],
-      ];
-
-      return next;
-    });
-  };
-
-  /* =================================
-     카드 순서 아래로
-  ================================= */
-
-  const moveSlideDown = (
-    index: number
-  ) => {
-    if (
-      index ===
-      slides.length - 1
-    ) {
-      return;
-    }
-
-    setSlides((prev) => {
-      const next = [...prev];
-
-      [next[index], next[index + 1]] = [
-        next[index + 1],
-        next[index],
-      ];
-
-      return next;
-    });
-  };
-
-  /* =================================
-     카드 값 수정
-  ================================= */
-
-  const updateSlide = (
-    index: number,
-    field: keyof SlideInput,
-    value: any
-  ) => {
-    setSlides((prev) =>
-      prev.map((slide, i) =>
-        i === index
-          ? {
-              ...slide,
-              [field]: value,
-            }
-          : slide
-      )
-    );
-  };
-
-  /* =================================
-     카드 이미지 변경
-  ================================= */
-
-  const handleImageChange = (
-    index: number,
-    file: File
-  ) => {
-    const previewUrl =
-      URL.createObjectURL(file);
-
-    setSlides((prev) =>
-      prev.map((slide, i) =>
-        i === index
-          ? {
-              ...slide,
-              imageFile: file,
-              previewUrl,
-            }
-          : slide
-      )
-    );
-  };
-
-  /* =================================
-     기존 첨부파일 삭제
-  ================================= */
-
-  const removeExistingFile = (
-    index: number
-  ) => {
-    setExistingFiles((prev) =>
-      prev.filter(
-        (_, i) => i !== index
-      )
-    );
-  };
-
-  /* =================================
-     저장
-  ================================= */
-
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      alert(
-        "제목을 입력해주세요."
-      );
-      return;
-    }
-
-    if (!summary.trim()) {
-      alert(
-        "한줄 설명을 입력해주세요."
-      );
-      return;
-    }
-
-    /* 대표이미지 검사 */
-
-    if (
-      !thumbnailUrl &&
-      !thumbnailFile
-    ) {
-      alert(
-        "목록 대표 이미지를 등록해주세요."
-      );
-      return;
-    }
-
-    const usableSlides =
-      slides.filter(
-        (slide) =>
-          slide.imageUrl ||
-          slide.imageFile
-      );
-
-    for (
-      const slide of usableSlides
-    ) {
-      if (!slide.title.trim()) {
-        alert(
-          "각 카드의 제목을 입력해주세요."
-        );
-        return;
-      }
-    }
-
-    setLoading(true);
-
-    try {
-      /* ===============================
-         대표 이미지 업로드
-      =============================== */
-
-      let finalThumbnailUrl =
-        thumbnailUrl;
-
-      if (thumbnailFile) {
-        const thumbnailRef = ref(
-          storage,
-          `boards/thumbnails/${Date.now()}-${thumbnailFile.name}`
-        );
-
-        await uploadBytes(
-          thumbnailRef,
-          thumbnailFile
-        );
-
-        finalThumbnailUrl =
-          await getDownloadURL(
-            thumbnailRef
-          );
-      }
-
-      /* ===============================
-         카드 이미지 업로드
-      =============================== */
-
-      const uploadedSlides = [];
-
-      for (
-        let i = 0;
-        i < usableSlides.length;
-        i++
+  const parsedSlides =
+    useMemo(() => {
+      if (
+        !board?.content ||
+        typeof window ===
+          "undefined"
       ) {
-        const slide =
-          usableSlides[i];
+        return [];
+      }
 
-        let imageUrl =
-          slide.imageUrl;
+      const parser =
+        new DOMParser();
 
-        if (slide.imageFile) {
-          const imageRef = ref(
-            storage,
-            `boards/slides/${Date.now()}-${i}-${slide.imageFile.name}`
-          );
+      const html =
+        parser.parseFromString(
+          board.content,
+          "text/html"
+        );
 
-          await uploadBytes(
-            imageRef,
-            slide.imageFile
-          );
+      const elements =
+        Array.from(
+          html.body.querySelectorAll(
+            "img, h1, h2, h3, h4, p, li, blockquote"
+          )
+        );
 
-          imageUrl =
-            await getDownloadURL(
-              imageRef
+      const slides: Slide[] = [];
+
+      let pendingText:
+        string[] = [];
+
+      let currentSlide:
+        Slide | null = null;
+
+      elements.forEach(
+        (element) => {
+          const tag =
+            element.tagName.toLowerCase();
+
+          if (tag === "img") {
+            const image =
+              element as HTMLImageElement;
+
+            if (currentSlide) {
+              slides.push(
+                currentSlide
+              );
+            }
+
+            currentSlide = {
+              imageUrl:
+                image.src,
+              text: [
+                ...pendingText,
+              ],
+            };
+
+            pendingText = [];
+
+            return;
+          }
+
+          const text =
+            element.textContent?.trim();
+
+          if (!text) return;
+
+          if (currentSlide) {
+            currentSlide.text.push(
+              text
             );
+          } else {
+            pendingText.push(
+              text
+            );
+          }
         }
+      );
 
-        uploadedSlides.push({
-          imageUrl,
-
-          title:
-            slide.title.trim(),
-
-          description:
-            slide.description.trim(),
-        });
+      if (currentSlide) {
+        slides.push(
+          currentSlide
+        );
       }
 
-      /* ===============================
-         새 첨부파일 업로드
-      =============================== */
+      return slides;
+    }, [board]);
 
-      const uploadedFiles = [];
+  /* =================================
+     새 slides 데이터 우선 사용
+  ================================= */
 
-      for (const file of files) {
-        const fileRef = ref(
-          storage,
-          `boards/files/${Date.now()}-${file.name}`
-        );
+  const slides: Slide[] =
+    useMemo(() => {
+      if (
+        Array.isArray(
+          board?.slides
+        ) &&
+        board.slides.length > 0
+      ) {
+        return board.slides
+          .filter(
+            (slide: any) =>
+              slide.imageUrl
+          )
+          .map(
+            (slide: any) => ({
+              imageUrl:
+                slide.imageUrl,
 
-        await uploadBytes(
-          fileRef,
-          file
-        );
-
-        const url =
-          await getDownloadURL(
-            fileRef
+              text: [
+                slide.title,
+                slide.description,
+              ].filter(Boolean),
+            })
           );
-
-        uploadedFiles.push({
-          name: file.name,
-          url,
-        });
       }
 
-      /* ===============================
-         Firestore 저장
-      =============================== */
+      return parsedSlides;
+    }, [board, parsedSlides]);
 
-      await updateDoc(
-        doc(db, "boards", id),
-        {
-          category,
+  /* =================================
+     현재 슬라이드 범위 보정
+  ================================= */
 
-          title:
-            title.trim(),
-
-          summary:
-            summary.trim(),
-
-          /* 목록 대표 이미지 */
-
-          thumbnailUrl:
-            finalThumbnailUrl,
-
-          /* 카드뉴스 */
-
-          slides:
-            uploadedSlides,
-
-          /*
-            기존 게시물의 HTML 본문은
-            삭제하지 않고 그대로 보존
-          */
-
-          content:
-            originalContent,
-
-          keywords: keywords
-            .split(",")
-            .map((value) =>
-              value.trim()
-            )
-            .filter(Boolean),
-
-          isPublished,
-
-          files: [
-            ...existingFiles,
-            ...uploadedFiles,
-          ],
-
-          updatedAt:
-            serverTimestamp(),
-        }
-      );
-
-      alert(
-        "게시글이 수정되었습니다."
-      );
-
-      router.push(
-        "/admin/boards"
-      );
-    } catch (error) {
-      console.error(
-        "게시글 수정 실패:",
-        error
-      );
-
-      alert(
-        "수정 중 오류가 발생했습니다."
-      );
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (
+      currentIndex >=
+      slides.length
+    ) {
+      setCurrentIndex(0);
     }
+  }, [
+    slides.length,
+    currentIndex,
+  ]);
+
+  /* =================================
+     슬라이드 이동
+  ================================= */
+
+  const nextSlide = () => {
+    if (!slides.length) return;
+
+    setCurrentIndex(
+      (prev) =>
+        (prev + 1) %
+        slides.length
+    );
+  };
+
+  const prevSlide = () => {
+    if (!slides.length) return;
+
+    setCurrentIndex(
+      (prev) =>
+        (prev -
+          1 +
+          slides.length) %
+        slides.length
+    );
+  };
+
+  const goToSlide = (
+    index: number
+  ) => {
+    setCurrentIndex(index);
+  };
+
+  /* =================================
+     모바일 스와이프
+  ================================= */
+
+  const handleTouchStart = (
+    e: React.TouchEvent
+  ) => {
+    touchStartX.current =
+      e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (
+    e: React.TouchEvent
+  ) => {
+    if (
+      touchStartX.current ===
+      null
+    ) {
+      return;
+    }
+
+    const endX =
+      e.changedTouches[0]
+        .clientX;
+
+    const difference =
+      touchStartX.current -
+      endX;
+
+    if (
+      Math.abs(difference) >
+      50
+    ) {
+      if (difference > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+
+    touchStartX.current =
+      null;
   };
 
   /* =================================
      로딩
   ================================= */
 
-  if (pageLoading) {
+  if (loading) {
     return (
-      <div className="py-20 text-gray-400">
-        게시글을 불러오는 중입니다.
-      </div>
+      <main className="min-h-screen bg-white px-6 pt-40">
+        <div className="mx-auto max-w-7xl text-sm text-gray-400">
+          콘텐츠를 불러오는
+          중입니다.
+        </div>
+      </main>
     );
   }
 
+  /* =================================
+     게시글 없음 / 비공개
+  ================================= */
+
+  if (
+    !board ||
+    board.isPublished !== true
+  ) {
+    return (
+      <main className="min-h-screen bg-white px-6 pt-40">
+        <div className="mx-auto max-w-7xl">
+
+          <p className="text-gray-500">
+            게시글을 찾을 수
+            없습니다.
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push(
+                "/boards"
+              )
+            }
+            className="mt-6 border-b border-black pb-1 text-sm"
+          >
+            목록으로 돌아가기
+          </button>
+
+        </div>
+      </main>
+    );
+  }
+
+  /* =================================
+     카드뉴스 없는 기존 게시물
+  ================================= */
+
+  if (
+    slides.length === 0
+  ) {
+    return (
+      <main className="min-h-screen bg-white px-6 pb-32 pt-36">
+
+        <div className="mx-auto max-w-4xl">
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push(
+                "/boards"
+              )
+            }
+            className="mb-10 text-sm text-gray-400 hover:text-black"
+          >
+            ← 목록으로
+          </button>
+
+          <p className="mb-3 text-xs font-semibold tracking-[0.18em] text-gray-400">
+            {board.category}
+          </p>
+
+          <h1 className="text-4xl font-semibold tracking-[-0.04em] md:text-5xl">
+            {board.title}
+          </h1>
+
+          {board.summary && (
+            <p className="mt-5 text-lg leading-8 text-gray-500">
+              {board.summary}
+            </p>
+          )}
+
+          <div className="my-10 border-t border-black" />
+
+          <div
+            className="
+              prose
+              prose-neutral
+              max-w-none
+              whitespace-pre-wrap
+              [&_img]:mx-auto
+              [&_img]:my-10
+              [&_img]:max-w-full
+              [&_p]:mb-6
+              [&_p]:leading-8
+            "
+            dangerouslySetInnerHTML={{
+              __html:
+                board.content ||
+                "<p>내용이 없습니다.</p>",
+            }}
+          />
+
+          {board.files?.length >
+            0 && (
+            <section className="mt-14 border-t border-gray-200 pt-8">
+
+              <h2 className="mb-5 text-sm font-semibold">
+                첨부파일
+              </h2>
+
+              <div className="flex flex-col gap-2">
+
+                {board.files.map(
+                  (
+                    file: any,
+                    index: number
+                  ) => (
+                    <a
+                      key={
+                        index
+                      }
+                      href={
+                        file.url
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-gray-500 underline"
+                    >
+                      {file.name ||
+                        `첨부파일 ${
+                          index +
+                          1
+                        }`}
+                    </a>
+                  )
+                )}
+
+              </div>
+
+            </section>
+          )}
+
+        </div>
+
+      </main>
+    );
+  }
+
+  const currentSlide =
+    slides[currentIndex];
+
+  /* =================================
+     카드뉴스 상세페이지
+  ================================= */
+
   return (
-    <div>
-
-      {/* =============================
-          제목
-      ============================= */}
-
-      <div className="mb-8">
-
-        <h1 className="text-3xl font-bold">
-          게시글 수정
-        </h1>
-
-        <p className="mt-2 text-gray-500">
-          목록 대표 이미지와 카드별 콘텐츠를
-          수정합니다.
-        </p>
-
-      </div>
-
-      <div className="max-w-5xl rounded-2xl border border-black bg-white p-8">
-
-        <div className="space-y-8">
-
-          {/* =========================
-              카테고리
-          ========================= */}
-
-          <div>
-
-            <label className="mb-2 block font-semibold">
-              카테고리
-            </label>
-
-            <select
-              value={category}
-              onChange={(e) =>
-                setCategory(
-                  e.target.value
-                )
-              }
-              className="w-full rounded-xl border border-gray-300 p-3"
-            >
-              {categories.map(
-                (item) => (
-                  <option key={item}>
-                    {item}
-                  </option>
-                )
-              )}
-            </select>
-
-          </div>
-
-          {/* =========================
-              제목
-          ========================= */}
-
-          <div>
-
-            <label className="mb-2 block font-semibold">
-              제목 *
-            </label>
-
-            <input
-              value={title}
-              onChange={(e) =>
-                setTitle(
-                  e.target.value
-                )
-              }
-              className="w-full rounded-xl border border-gray-300 p-3"
-            />
-
-          </div>
-
-          {/* =========================
-              한줄 설명
-          ========================= */}
-
-          <div>
-
-            <label className="mb-2 block font-semibold">
-              한줄 설명 *
-            </label>
-
-            <input
-              value={summary}
-              onChange={(e) =>
-                setSummary(
-                  e.target.value
-                )
-              }
-              className="w-full rounded-xl border border-gray-300 p-3"
-            />
-
-          </div>
-
-          {/* =========================
-              목록 대표 이미지
-          ========================= */}
-
-          <div className="border-t border-gray-200 pt-8">
-
-            <label className="mb-2 block text-lg font-bold">
-              목록 대표 이미지 *
-            </label>
-
-            <div className="mb-5 rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-500">
-
-              <p>
-                LAB MEMBERS 게시물 목록에
-                표시되는 이미지입니다.
-              </p>
-
-              <p className="mt-1 font-semibold text-gray-700">
-                권장 사이즈:
-                1200 × 1500px
-                (4:5 비율)
-              </p>
-
-              <p>
-                최소 800 × 1000px 이상을
-                권장합니다.
-              </p>
-
-              <p>
-                상세페이지 카드 이미지는
-                아래에서 별도로 등록해주세요.
-              </p>
-
-            </div>
-
-            {thumbnailPreview && (
-              <div className="mb-5 w-full max-w-[320px] overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-
-                <img
-                  src={
-                    thumbnailPreview
-                  }
-                  alt="대표 이미지 미리보기"
-                  className="aspect-[4/5] w-full object-cover"
-                />
-
-              </div>
-            )}
-
-            <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500 transition hover:bg-gray-50">
-
-              {thumbnailPreview
-                ? "대표 이미지 변경"
-                : "+ 대표 이미지 선택"}
-
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file =
-                    e.target.files?.[0];
-
-                  if (file) {
-                    handleThumbnailChange(
-                      file
-                    );
-                  }
-                }}
-              />
-
-            </label>
-
-          </div>
-
-          {/* =========================
-              카드 콘텐츠
-          ========================= */}
-
-          <div className="border-t border-gray-200 pt-8">
-
-            <div className="mb-6 flex items-center justify-between">
-
-              <div>
-
-                <h2 className="text-xl font-bold">
-                  카드 콘텐츠
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-400">
-                  상세페이지에서 이미지와
-                  오른쪽 설명이 한 세트로
-                  표시됩니다.
-                </p>
-
-              </div>
-
-              <button
-                type="button"
-                onClick={addSlide}
-                className="rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white"
-              >
-                + 카드 추가
-              </button>
-
-            </div>
-
-            <div className="space-y-6">
-
-              {slides.map(
-                (slide, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border border-gray-300 p-6"
-                  >
-
-                    {/* 카드 상단 */}
-
-                    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-
-                      <h3 className="text-lg font-bold">
-
-                        카드{" "}
-
-                        {String(
-                          index + 1
-                        ).padStart(
-                          2,
-                          "0"
-                        )}
-
-                      </h3>
-
-                      <div className="flex items-center gap-2">
-
-                        <button
-                          type="button"
-                          disabled={
-                            index === 0
-                          }
-                          onClick={() =>
-                            moveSlideUp(
-                              index
-                            )
-                          }
-                          className="rounded-lg border px-3 py-2 text-xs disabled:opacity-30"
-                        >
-                          ↑ 위로
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={
-                            index ===
-                            slides.length - 1
-                          }
-                          onClick={() =>
-                            moveSlideDown(
-                              index
-                            )
-                          }
-                          className="rounded-lg border px-3 py-2 text-xs disabled:opacity-30"
-                        >
-                          ↓ 아래로
-                        </button>
-
-                        {slides.length >
-                          1 && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeSlide(
-                                index
-                              )
-                            }
-                            className="ml-2 text-sm text-red-500"
-                          >
-                            삭제
-                          </button>
-                        )}
-
-                      </div>
-
-                    </div>
-
-                    {/* 카드 이미지 */}
-
-                    <div className="mb-5">
-
-                      <label className="mb-2 block text-sm font-semibold">
-                        카드 이미지
-                      </label>
-
-                      <p className="mb-3 text-xs leading-5 text-gray-400">
-                        상세페이지에 크게 표시되는
-                        이미지입니다. 이미지 내부의
-                        중요한 글자나 요소는 가장자리에서
-                        여유를 두는 것을 권장합니다.
-                      </p>
-
-                      {slide.previewUrl && (
-                        <div className="mb-4 overflow-hidden rounded-xl bg-gray-100">
-
-                          <img
-                            src={
-                              slide.previewUrl
-                            }
-                            alt=""
-                            className="mx-auto max-h-[500px] w-full object-contain"
-                          />
-
-                        </div>
-                      )}
-
-                      <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-sm text-gray-500 hover:bg-gray-50">
-
-                        {slide.previewUrl
-                          ? "이미지 변경"
-                          : "+ 이미지 선택"}
-
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file =
-                              e.target
-                                .files?.[0];
-
-                            if (file) {
-                              handleImageChange(
-                                index,
-                                file
-                              );
-                            }
-                          }}
-                        />
-
-                      </label>
-
-                    </div>
-
-                    {/* 카드 제목 */}
-
-                    <div className="mb-5">
-
-                      <label className="mb-2 block text-sm font-semibold">
-                        카드 제목
-                      </label>
-
-                      <input
-                        value={
-                          slide.title
-                        }
-                        onChange={(e) =>
-                          updateSlide(
-                            index,
-                            "title",
-                            e.target.value
-                          )
-                        }
-                        placeholder="예: 브랜드명을 정했다면"
-                        className="w-full rounded-xl border border-gray-300 p-3"
-                      />
-
-                    </div>
-
-                    {/* 카드 설명 */}
-
-                    <div>
-
-                      <label className="mb-2 block text-sm font-semibold">
-                        카드 설명
-                      </label>
-
-                      <textarea
-                        value={
-                          slide.description
-                        }
-                        onChange={(e) =>
-                          updateSlide(
-                            index,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        rows={7}
-                        placeholder="해당 이미지 오른쪽에 표시할 설명을 입력해주세요."
-                        className="w-full resize-y rounded-xl border border-gray-300 p-4 leading-7"
-                      />
-
-                    </div>
-
-                  </div>
-                )
-              )}
-
-            </div>
-
-          </div>
-
-          {/* =========================
-              첨부파일
-          ========================= */}
-
-          <div className="border-t border-gray-200 pt-8">
-
-            <label className="mb-3 block font-semibold">
-              첨부 파일
-            </label>
-
-            {existingFiles.length >
-              0 && (
-              <div className="mb-4 space-y-2">
-
-                {existingFiles.map(
-                  (file, index) => (
-                    <div
-                      key={`${file.url}-${index}`}
-                      className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
-                    >
-
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:underline"
-                      >
-                        {file.name}
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeExistingFile(
-                            index
-                          )
-                        }
-                        className="text-red-500"
-                      >
-                        삭제
-                      </button>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-            )}
-
-            <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-gray-300 p-6 text-gray-500 hover:bg-gray-50">
-
-              + 파일 추가
-
-              <input
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  const selected =
-                    Array.from(
-                      e.target.files || []
-                    );
-
-                  setFiles((prev) => [
-                    ...prev,
-                    ...selected,
-                  ]);
-                }}
-              />
-
-            </label>
-
-            {files.length > 0 && (
-              <div className="mt-3 space-y-2">
-
-                {files.map(
-                  (file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
-                    >
-
-                      <span>
-                        {file.name}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFiles(
-                            (prev) =>
-                              prev.filter(
-                                (_, i) =>
-                                  i !==
-                                  index
-                              )
-                          )
-                        }
-                        className="text-red-500"
-                      >
-                        삭제
-                      </button>
-
-                    </div>
-                  )
-                )}
-
-              </div>
-            )}
-
-          </div>
-
-          {/* =========================
-              키워드
-          ========================= */}
-
-          <div>
-
-            <label className="mb-2 block font-semibold">
-              키워드
-            </label>
-
-            <input
-              value={keywords}
-              onChange={(e) =>
-                setKeywords(
-                  e.target.value
-                )
-              }
-              placeholder="예: 브랜드, 상표등록, 화장품제조"
-              className="w-full rounded-xl border border-gray-300 p-3"
-            />
-
-          </div>
-
-          {/* =========================
-              공개
-          ========================= */}
-
-          <label className="flex items-center gap-2 font-semibold">
-
-            <input
-              type="checkbox"
-              checked={
-                isPublished
-              }
-              onChange={(e) =>
-                setIsPublished(
-                  e.target.checked
-                )
-              }
-            />
-
-            공개
-
-          </label>
-
-          {/* =========================
-              저장 버튼
-          ========================= */}
-
-          <div className="flex gap-3 border-t border-gray-200 pt-7">
-
-            <button
-              type="button"
-              onClick={
-                handleSubmit
-              }
-              disabled={loading}
-              className="rounded-xl bg-black px-7 py-3 font-semibold text-white disabled:bg-gray-400"
-            >
-              {loading
-                ? "수정 중..."
-                : "수정하기"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                router.push(
-                  "/admin/boards"
-                )
-              }
-              className="rounded-xl border border-black px-7 py-3 font-semibold"
-            >
-              취소
-            </button>
-
+    <main className="min-h-screen bg-white pb-28 pt-28">
+
+      <div className="mx-auto max-w-[1500px] px-4 md:px-8">
+
+        {/* 상단 */}
+
+        <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-6">
+
+          <button
+            type="button"
+            onClick={() =>
+              router.push(
+                "/boards"
+              )
+            }
+            className="text-sm text-gray-400 transition hover:text-black"
+          >
+            ← GUIDE
+          </button>
+
+          <div className="text-xs tracking-[0.18em] text-gray-400">
+            LABBRIDGE
           </div>
 
         </div>
 
+        {/* 본체 */}
+
+        <div className="grid overflow-hidden border border-gray-200 lg:grid-cols-[1.7fr_0.8fr]">
+
+          {/* =========================
+              LEFT / 이미지
+          ========================= */}
+
+          <section className="relative bg-[#f5f4f0]">
+
+            {/* 번호 */}
+
+            <div className="absolute left-6 top-6 z-20 rounded-full bg-white/90 px-4 py-2 text-xs font-medium backdrop-blur md:left-8 md:top-8">
+
+              {String(
+                currentIndex +
+                  1
+              ).padStart(
+                2,
+                "0"
+              )}
+
+              <span className="mx-2 text-gray-300">
+                /
+              </span>
+
+              {String(
+                slides.length
+              ).padStart(
+                2,
+                "0"
+              )}
+
+            </div>
+
+            {/* 이미지 */}
+
+            <div
+              className="relative flex min-h-[520px] items-center justify-center overflow-hidden md:min-h-[700px] lg:min-h-[820px]"
+              onTouchStart={
+                handleTouchStart
+              }
+              onTouchEnd={
+                handleTouchEnd
+              }
+            >
+
+              <img
+                key={
+                  currentSlide
+                    .imageUrl
+                }
+                src={
+                  currentSlide
+                    .imageUrl
+                }
+                alt={`${board.title} ${
+                  currentIndex +
+                  1
+                }`}
+                className="
+                  h-full
+                  w-full
+                  max-h-[820px]
+                  object-contain
+                  transition-opacity
+                  duration-300
+                "
+              />
+
+              {/* 이전 */}
+
+              {slides.length >
+                1 && (
+                <button
+                  type="button"
+                  onClick={
+                    prevSlide
+                  }
+                  className="
+                    absolute
+                    left-4
+                    top-1/2
+                    flex
+                    h-12
+                    w-12
+                    -translate-y-1/2
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/95
+                    text-2xl
+                    shadow-sm
+                    transition
+                    hover:scale-105
+                    md:left-6
+                  "
+                  aria-label="이전 이미지"
+                >
+                  ‹
+                </button>
+              )}
+
+              {/* 다음 */}
+
+              {slides.length >
+                1 && (
+                <button
+                  type="button"
+                  onClick={
+                    nextSlide
+                  }
+                  className="
+                    absolute
+                    right-4
+                    top-1/2
+                    flex
+                    h-12
+                    w-12
+                    -translate-y-1/2
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/95
+                    text-2xl
+                    shadow-sm
+                    transition
+                    hover:scale-105
+                    md:right-6
+                  "
+                  aria-label="다음 이미지"
+                >
+                  ›
+                </button>
+              )}
+
+            </div>
+
+            {/* 하단 점 */}
+
+            {slides.length >
+              1 && (
+              <div className="flex items-center justify-center gap-2 bg-white py-6">
+
+                {slides.map(
+                  (
+                    _,
+                    index
+                  ) => (
+                    <button
+                      key={
+                        index
+                      }
+                      type="button"
+                      onClick={() =>
+                        goToSlide(
+                          index
+                        )
+                      }
+                      className={`h-2 rounded-full transition-all ${
+                        index ===
+                        currentIndex
+                          ? "w-6 bg-black"
+                          : "w-2 bg-gray-300"
+                      }`}
+                      aria-label={`${
+                        index +
+                        1
+                      }번 슬라이드`}
+                    />
+                  )
+                )}
+
+              </div>
+            )}
+
+          </section>
+
+          {/* =========================
+              RIGHT / 설명
+          ========================= */}
+
+          <aside className="flex min-h-[700px] flex-col bg-white px-7 py-8 md:px-10 md:py-12 lg:min-h-[820px]">
+
+            {/* 상단 정보 */}
+
+            <div>
+
+              <p className="mb-5 text-xs font-semibold tracking-[0.16em] text-gray-400">
+                {board.category ||
+                  "LABBRIDGE GUIDE"}
+              </p>
+
+              <h1 className="text-[30px] font-semibold leading-[1.25] tracking-[-0.04em] md:text-[38px]">
+                {board.title}
+              </h1>
+
+              {board.summary && (
+                <p className="mt-5 border-b border-gray-200 pb-8 text-sm leading-7 text-gray-500">
+                  {
+                    board.summary
+                  }
+                </p>
+              )}
+
+            </div>
+
+            {/* 현재 카드 설명 */}
+
+            <div className="py-8">
+
+              <div className="mb-6 flex items-center gap-3">
+
+                <span className="text-xs font-semibold text-gray-400">
+                  STEP
+                </span>
+
+                <span className="text-xs font-semibold">
+                  {String(
+                    currentIndex +
+                      1
+                  ).padStart(
+                    2,
+                    "0"
+                  )}
+                </span>
+
+              </div>
+
+              {currentSlide.text
+                .length > 0 ? (
+                <div className="space-y-5">
+
+                  {currentSlide.text.map(
+                    (
+                      text,
+                      index
+                    ) => (
+                      <p
+                        key={
+                          index
+                        }
+                        className={
+                          index ===
+                          0
+                            ? "text-lg font-semibold leading-8"
+                            : "whitespace-pre-line text-[15px] leading-7 text-gray-600"
+                        }
+                      >
+                        {
+                          text
+                        }
+                      </p>
+                    )
+                  )}
+
+                </div>
+              ) : (
+                <p className="text-[15px] leading-7 text-gray-500">
+                  이미지를 좌우로
+                  넘기며 가이드를
+                  확인해보세요.
+                </p>
+              )}
+
+            </div>
+
+            {/* 하단 */}
+
+            <div className="mt-auto">
+
+              <div className="mb-7 border-t border-gray-200 pt-7">
+
+                <p className="mb-4 text-xs font-semibold tracking-[0.12em] text-gray-400">
+                  GUIDE NAVIGATION
+                </p>
+
+                <div className="flex items-center justify-between">
+
+                  <button
+                    type="button"
+                    onClick={
+                      prevSlide
+                    }
+                    disabled={
+                      slides.length <=
+                      1
+                    }
+                    className="text-sm font-medium disabled:text-gray-300"
+                  >
+                    ← 이전
+                  </button>
+
+                  <span className="text-xs text-gray-400">
+                    {currentIndex +
+                      1}{" "}
+                    /{" "}
+                    {
+                      slides.length
+                    }
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={
+                      nextSlide
+                    }
+                    disabled={
+                      slides.length <=
+                      1
+                    }
+                    className="text-sm font-medium disabled:text-gray-300"
+                  >
+                    다음 →
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* 관련 서비스 */}
+
+              <div className="grid grid-cols-2 gap-3">
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      "/products"
+                    )
+                  }
+                  className="border border-gray-300 px-4 py-4 text-sm font-semibold transition hover:border-black"
+                >
+                  제형 둘러보기 →
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      "/estimate"
+                    )
+                  }
+                  className="bg-black px-4 py-4 text-sm font-semibold text-white transition hover:bg-gray-800"
+                >
+                  견적 문의하기 →
+                </button>
+
+              </div>
+
+            </div>
+
+          </aside>
+
+        </div>
+
+        {/* 첨부파일 */}
+
+        {board.files?.length >
+          0 && (
+          <section className="mt-14 border-t border-gray-200 pt-8">
+
+            <h2 className="mb-5 text-sm font-semibold">
+              첨부파일
+            </h2>
+
+            <div className="flex flex-col gap-2">
+
+              {board.files.map(
+                (
+                  file: any,
+                  index: number
+                ) => (
+                  <a
+                    key={
+                      index
+                    }
+                    href={
+                      file.url
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-gray-500 underline"
+                  >
+                    {file.name ||
+                      `첨부파일 ${
+                        index +
+                        1
+                      }`}
+                  </a>
+                )
+              )}
+
+            </div>
+
+          </section>
+        )}
+
       </div>
 
-    </div>
+    </main>
   );
 }
