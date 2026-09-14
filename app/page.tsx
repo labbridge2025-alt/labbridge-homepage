@@ -31,13 +31,13 @@ export default function Home() {
     <h1 className="mb-7 text-[64px] font-extrabold leading-[1.18] tracking-[-2px] text-neutral-900">
       화장품 제조의
       <br />
-      시작부터 출시까지
+      1,000개 소량생산부터
     </h1>
 
     <p className="mb-8 text-[20px] leading-[1.8] text-neutral-700">
-      제형 개발부터 패키지, 생산, 인허가까지
+       랩브릿지 LABBRIDGE는 화장품 OEM·ODM부터
       <br />
-      원스톱 OEM/ODM 솔루션으로 브랜드의 성공을 함께 만듭니다.
+      제형 개발, 패키지, 생산, 인허가까지 함께합니다.
     </p>
 
     <div className="flex gap-4">
@@ -300,7 +300,7 @@ export default function Home() {
               </h2>
 
               <p className="text-[16px] leading-[1.8] text-gray-600 lg:text-2xl">
-                랩브릿지는 제형, 용기, 부자재, 원료, 임상 및 인허가까지
+                랩브릿지 LABBRIDGE는 화장품 소량생산부터 제형, 용기, 부자재,
                 <br className="hidden lg:block" />
                 화장품 제조에 필요한 과정을 한 번에 연결합니다.
               </p>
