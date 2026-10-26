@@ -174,37 +174,36 @@ export default function BoardsPage() {
                   href={`/boards/${board.id}`}
                   className="group block"
                 >
-                  {/* 이미지 */}
-                  <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f4f0]">
-                    {thumbnail ? (
-                      <img
-                        src={thumbnail}
-                        alt={board.title || "게시물 이미지"}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <div className="text-center">
-                          <p className="text-xs tracking-[0.2em] text-gray-300">
-                            LABBRIDGE
-                          </p>
+{/* 대표 이미지 영역 */}
+<div className="relative w-full aspect-[4/5] bg-[#f3f8fd]">
 
-                          <p className="mt-3 text-sm text-gray-300">
-                            CONTENT
-                          </p>
-                        </div>
-                      </div>
-                    )}
+  {thumbnail ? (
+    <img
+      src={thumbnail}
+      alt={board.title || "게시물 이미지"}
+      loading="lazy"
+      className="
+        block
+        w-full
+        h-full
+        object-contain
+        object-center
+      "
+    />
+  ) : (
+    <div className="flex h-full w-full items-center justify-center bg-[#f3f8fd]">
+      <div className="text-center">
+        <p className="text-xs tracking-[0.2em] text-gray-400">
+          LABBRIDGE
+        </p>
+        <p className="mt-3 text-sm text-gray-400">
+          CONTENT
+        </p>
+      </div>
+    </div>
+  )}
 
-                    {/* 카테고리 */}
-                    <div className="absolute left-4 top-4">
-                      <span className="bg-white/95 px-3 py-2 text-xs font-semibold backdrop-blur">
-                        {board.category ||
-                          "LABBRIDGE"}
-                      </span>
-                    </div>
-                  </div>
-
+</div>
                   {/* 텍스트 */}
                   <div className="pt-5">
 
