@@ -10,6 +10,7 @@ export default function ProductsPage() {
   const [wish, setWish] = useState<string[]>([]);
   const [filterCategory, setFilterCategory] = useState("전체");
   const [filterTag, setFilterTag] = useState("전체");
+  const [searchTerm, setSearchTerm] = useState("");
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [mobileTagOpen, setMobileTagOpen] = useState(false);
 const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -73,15 +74,27 @@ useEffect(() => {
     localStorage.setItem("labbridge-wish", JSON.stringify(next));
   };
 
-  const filteredItems = items.filter((item) => {
-    const categoryMatch =
-      filterCategory === "전체" || item.category === filterCategory;
+const filteredItems = items.filter((item) => {
+  const categoryMatch =
+    filterCategory === "전체" || item.category === filterCategory;
 
-    const tagMatch =
-      filterTag === "전체" || item.tags?.includes(filterTag);
+  const tagMatch =
+    filterTag === "전체" || item.tags?.includes(filterTag);
 
-    return categoryMatch && tagMatch;
-  });
+  const keyword = searchTerm.trim().toLowerCase();
+
+  const searchMatch =
+    keyword === "" ||
+    [
+      item.name,
+      item.category,
+      ...(Array.isArray(item.tags) ? item.tags : []),
+    ]
+      .filter((value) => typeof value === "string")
+      .some((value) => value.toLowerCase().includes(keyword));
+
+  return categoryMatch && tagMatch && searchMatch;
+});
 
   return (
     <main className="pt-28 lg:pt-40 pb-24 lg:pb-32">
@@ -106,7 +119,56 @@ useEffect(() => {
             관심장바구니 {wish.length}개
           </a>
         </div>
+{/* 제품 검색창 */}
+<div className="mb-8 lg:mb-10">
+  <div className="relative w-full max-w-2xl">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
 
+    <input
+      type="search"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="원하는 제품명, 제형, 성분을 검색해보세요."
+      aria-label="제품 검색"
+      className="w-full h-14 pl-14 pr-12 border border-gray-300 rounded-xl bg-white text-sm sm:text-base outline-none focus:border-black focus:ring-1 focus:ring-black transition"
+    />
+
+    {searchTerm && (
+      <button
+        type="button"
+        onClick={() => setSearchTerm("")}
+        aria-label="검색어 지우기"
+        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-xl"
+      >
+        ×
+      </button>
+    )}
+  </div>
+
+  {searchTerm.trim() && (
+    <p className="mt-3 text-sm text-gray-500">
+      검색 결과{" "}
+      <span className="font-bold text-black">
+        {filteredItems.length}
+      </span>
+      개
+    </p>
+  )}
+</div>
         {/* 모바일 필터 */}
         <div className="lg:hidden mb-8">
           <div className="flex gap-2 overflow-x-auto pb-3">
@@ -319,7 +381,9 @@ useEffect(() => {
 
             {filteredItems.length === 0 && (
               <div className="col-span-2 lg:col-span-3 border rounded-2xl p-12 lg:p-20 text-center text-gray-500">
-                등록된 제품이 없습니다.
+                {searchTerm.trim()
+  ? `"${searchTerm.trim()}"에 대한 검색 결과가 없습니다.`
+  : "등록된 제품이 없습니다."}
               </div>
             )}
           </div>

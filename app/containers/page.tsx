@@ -25,7 +25,27 @@ export default function ContainersPage() {
   const [filterTag, setFilterTag] = useState("전체");
   const [mobileCategoryOpen, setMobileCategoryOpen] = useState(false);
   const [mobileTagOpen, setMobileTagOpen] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+const [selectedVolume, setSelectedVolume] = useState("전체");
 
+const volumeOptions = [
+  "전체",
+  "5ml",
+  "10ml",
+  "15ml",
+  "20ml",
+  "30ml",
+  "50ml",
+  "80ml",
+  "100ml",
+  "120ml",
+  "150ml",
+  "200ml",
+  "250ml",
+  "300ml",
+  "500ml",
+  "기타",
+];
   const tagOptions = [
     "전체",
     "튜브",
@@ -67,15 +87,61 @@ export default function ContainersPage() {
     loadContainers();
   }, []);
 
-  const filteredItems = items.filter((item) => {
-    const categoryMatch =
-      filterCategory === "전체" || item.categoryName === filterCategory;
+const normalizeVolume = (value: unknown) =>
+  String(value ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/㎖/g, "ml");
 
-    const tagMatch =
-      filterTag === "전체" || item.tags?.includes(`#${filterTag}`) || item.tags?.includes(filterTag);
+const standardVolumes = volumeOptions.filter(
+  (volume) => volume !== "전체" && volume !== "기타"
+);
 
-    return categoryMatch && tagMatch;
-  });
+const filteredItems = items.filter((item) => {
+  const categoryMatch =
+    filterCategory === "전체" ||
+    item.categoryName === filterCategory;
+
+  const tagMatch =
+    filterTag === "전체" ||
+    item.tags?.includes(`#${filterTag}`) ||
+    item.tags?.includes(filterTag);
+
+  const keyword = searchTerm.trim().toLowerCase();
+
+  const searchMatch =
+    keyword === "" ||
+    [
+      item.name,
+      item.categoryName,
+      item.volume,
+      item.material,
+      item.print,
+      item.description,
+      ...(Array.isArray(item.tags) ? item.tags : []),
+    ]
+      .filter((value) => typeof value === "string")
+      .some((value) => value.toLowerCase().includes(keyword));
+
+  const volume = normalizeVolume(item.volume);
+
+  const volumeMatch =
+    selectedVolume === "전체" ||
+    (selectedVolume === "기타"
+      ? !standardVolumes.some(
+          (option) => normalizeVolume(option) === volume
+        )
+      : volume === normalizeVolume(selectedVolume));
+
+  return categoryMatch && tagMatch && searchMatch && volumeMatch;
+});
+
+const resetFilters = () => {
+  setSearchTerm("");
+  setSelectedVolume("전체");
+  setFilterCategory("전체");
+  setFilterTag("전체");
+};
 
   return (
     <main className="pt-28 lg:pt-40 pb-24 lg:pb-32">
@@ -100,7 +166,91 @@ export default function ContainersPage() {
             제조 문의하기
           </a>
         </div>
+{/* 검색 및 용량 필터 */}
+<div className="mb-8 lg:mb-10">
 
+  {/* 검색창 */}
+  <div className="relative w-full max-w-2xl mb-6">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+
+    <input
+      type="search"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="용기명, 용량, 재질, 종류를 검색해보세요."
+      aria-label="용기 검색"
+      className="w-full h-14 pl-14 pr-12 border border-gray-300 rounded-xl bg-white text-sm sm:text-base outline-none focus:border-black focus:ring-1 focus:ring-black transition"
+    />
+
+    {searchTerm && (
+      <button
+        type="button"
+        onClick={() => setSearchTerm("")}
+        aria-label="검색어 지우기"
+        className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black text-xl"
+      >
+        ×
+      </button>
+    )}
+  </div>
+
+  {/* 용량 선택 */}
+  <div className="mb-5">
+    <p className="text-sm font-bold mb-3">
+      용량 선택
+    </p>
+
+    <div className="flex flex-wrap gap-2">
+      {volumeOptions.map((volume) => (
+        <button
+          key={volume}
+          type="button"
+          onClick={() => setSelectedVolume(volume)}
+          className={`px-4 py-2 rounded-xl border text-sm font-bold transition ${
+            selectedVolume === volume
+              ? "bg-black text-white border-black"
+              : "bg-white text-gray-600 hover:border-black"
+          }`}
+        >
+          {volume}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {/* 검색 결과 및 초기화 */}
+  <div className="flex items-center justify-between gap-4">
+    <p className="text-sm text-gray-500">
+      총{" "}
+      <span className="font-bold text-black">
+        {filteredItems.length}
+      </span>
+      개의 용기
+    </p>
+
+    <button
+      type="button"
+      onClick={resetFilters}
+      className="text-sm text-gray-500 hover:text-black underline underline-offset-4"
+    >
+      필터 초기화
+    </button>
+  </div>
+</div>
         {/* 모바일 필터 */}
         <div className="lg:hidden mb-8">
           <div className="flex gap-2 overflow-x-auto pb-3">
@@ -271,7 +421,12 @@ export default function ContainersPage() {
 
             {filteredItems.length === 0 && (
               <div className="col-span-2 lg:col-span-3 border rounded-2xl p-12 lg:p-20 text-center text-gray-500">
-                등록된 용기가 없습니다.
+                {searchTerm.trim() ||
+selectedVolume !== "전체" ||
+filterCategory !== "전체" ||
+filterTag !== "전체"
+  ? "선택하신 조건에 맞는 용기가 없습니다. 다른 검색어나 용량을 선택해보세요."
+  : "등록된 용기가 없습니다."}
               </div>
             )}
           </div>

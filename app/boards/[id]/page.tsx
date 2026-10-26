@@ -18,6 +18,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
+import DOMPurify from "dompurify";
 
 type Slide = {
   imageUrl: string;
@@ -403,8 +404,7 @@ export default function BoardDetailPage() {
             "
             dangerouslySetInnerHTML={{
               __html:
-                board.content ||
-                "<p>내용이 없습니다.</p>",
+                DOMPurify.sanitize(board.content || "<p>내용이 없습니다.</p>"),
             }}
           />
 
@@ -721,28 +721,13 @@ export default function BoardDetailPage() {
                 .length > 0 ? (
                 <div className="space-y-5">
 
-                  {currentSlide.text.map(
-                    (
-                      text,
-                      index
-                    ) => (
-                      <p
-                        key={
-                          index
-                        }
-                        className={
-                          index ===
-                          0
-                            ? "text-lg font-semibold leading-8"
-                            : "whitespace-pre-line text-[15px] leading-7 text-gray-600"
-                        }
-                      >
-                        {
-                          text
-                        }
-                      </p>
-                    )
-                  )}
+                  {currentSlide.text.map((text, index) => (
+                    <RichSlideText
+                      key={index}
+                      value={text}
+                      isTitle={index === 0}
+                    />
+                  ))}
 
                 </div>
               ) : (
@@ -889,5 +874,33 @@ export default function BoardDetailPage() {
       </div>
 
     </main>
+  );
+}
+
+function RichSlideText({ value, isTitle }: { value: string; isTitle: boolean }) {
+  const safeHtml = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return DOMPurify.sanitize(value, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["script", "style", "iframe", "form", "input", "button"],
+      FORBID_ATTR: ["onerror", "onclick", "onload"],
+    });
+  }, [value]);
+
+  // Old plain-text posts remain readable without any migration.
+  const hasHtml = /<\/?[a-z][^>]*>/i.test(value);
+  const classes = isTitle
+    ? "text-lg font-semibold leading-8 break-words"
+    : "text-[15px] leading-7 text-gray-600 break-words";
+
+  if (!hasHtml) {
+    return <p className={`${classes} whitespace-pre-line`}>{value}</p>;
+  }
+
+  return (
+    <div
+      className={`${classes} [&_p]:mb-3 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_a]:underline [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_table]:border-collapse [&_td]:border [&_th]:border [&_td]:p-2 [&_th]:p-2 [&_img]:max-w-full`}
+      dangerouslySetInnerHTML={{ __html: safeHtml }}
+    />
   );
 }

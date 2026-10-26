@@ -13,7 +13,7 @@ import {
   getDownloadURL,
 } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
-
+import RichTextEditor from "@/components/admin/RichTextEditor";
 const categories = [
   "원료자료",
   "가이드라인",
@@ -525,23 +525,12 @@ await addDoc(
                         카드 설명
                       </label>
 
-                      <textarea
-                        value={
-                          slide.description
-                        }
-                        onChange={(e) =>
-                          updateSlide(
-                            index,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        rows={6}
-                        placeholder={
-                          "예: 가장 먼저 국내 상표가 이미 등록되어 있는지 확인해야 합니다.\n\n동일하거나 유사한 상표가 등록되어 있다면 추후 문제가 발생할 수 있습니다."
-                        }
-                        className="w-full resize-y rounded-xl border border-gray-300 p-4 leading-7"
-                      />
+<RichTextEditor
+  value={slide.description}
+  onChange={(html) =>
+    updateSlide(index, "description", html)
+  }
+/>
 
                     </div>
 
