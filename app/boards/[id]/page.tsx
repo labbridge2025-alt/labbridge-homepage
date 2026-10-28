@@ -496,7 +496,7 @@ export default function BoardDetailPage() {
               LEFT / 이미지
           ========================= */}
 
-          <section className="relative bg-[#f5f4f0]">
+          <section className="relative self-start bg-[#f5f4f0]">
 
             {/* 번호 */}
 
@@ -525,38 +525,24 @@ export default function BoardDetailPage() {
 
             {/* 이미지 */}
 
-            <div
-              className="relative flex min-h-[520px] items-center justify-center overflow-hidden md:min-h-[700px] lg:min-h-[820px]"
-              onTouchStart={
-                handleTouchStart
-              }
-              onTouchEnd={
-                handleTouchEnd
-              }
-            >
-
-              <img
-                key={
-                  currentSlide
-                    .imageUrl
-                }
-                src={
-                  currentSlide
-                    .imageUrl
-                }
-                alt={`${board.title} ${
-                  currentIndex +
-                  1
-                }`}
-                className="
-                  h-full
-                  w-full
-                  max-h-[820px]
-                  object-contain
-                  transition-opacity
-                  duration-300
-                "
-              />
+<div
+  className="relative w-full overflow-hidden bg-[#f5f4f0]"
+  onTouchStart={handleTouchStart}
+  onTouchEnd={handleTouchEnd}
+>
+  <img
+    key={currentSlide.imageUrl}
+    src={currentSlide.imageUrl}
+    alt={`${board.title} ${currentIndex + 1}`}
+    className="
+      block
+      h-auto
+      w-full
+      object-contain
+      transition-opacity
+      duration-300
+    "
+  />
 
               {/* 이전 */}
 
@@ -670,7 +656,7 @@ export default function BoardDetailPage() {
               RIGHT / 설명
           ========================= */}
 
-          <aside className="flex min-h-[700px] flex-col bg-white px-7 py-8 md:px-10 md:py-12 lg:min-h-[820px]">
+          <aside className="flex min-w-0 flex-col bg-white px-7 py-8 md:px-10 md:py-12">
 
             {/* 상단 정보 */}
 
