@@ -16,7 +16,10 @@ declare global {
 
 export default function MetaPixel() {
   const pathname = usePathname();
+
   const [pixelId, setPixelId] = useState("");
+  const [scriptReady, setScriptReady] = useState(false);
+
   const initializedId = useRef("");
   const lastTrackedPath = useRef("");
 
@@ -24,47 +27,59 @@ export default function MetaPixel() {
     pathname === "/admin" ||
     pathname.startsWith("/admin/");
 
+  // Firebase에서 저장된 픽셀 ID 가져오기
   useEffect(() => {
+    let active = true;
+
     async function loadPixelId() {
       try {
         const snapshot = await getDoc(
           doc(db, "settings", "ads")
         );
 
-        if (snapshot.exists()) {
-          const id = snapshot.data().metaPixelId;
+        if (!active || !snapshot.exists()) return;
 
-          if (typeof id === "string" && /^\d+$/.test(id)) {
-            setPixelId(id);
-          }
+        const id = snapshot.data().metaPixelId;
+
+        if (
+          typeof id === "string" &&
+          /^\d+$/.test(id.trim())
+        ) {
+          setPixelId(id.trim());
         }
       } catch (error) {
-        console.error("Meta Pixel 불러오기 오류:", error);
+        console.error("Meta Pixel ID 불러오기 실패:", error);
       }
     }
 
     loadPixelId();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const trackPageView = () => {
-    if (!pixelId || isAdmin || !window.fbq) return;
-
-    if (lastTrackedPath.current === pathname) return;
-
-    window.fbq("track", "PageView");
-    lastTrackedPath.current = pathname;
-  };
-
+  // 픽셀 초기화 및 페이지 방문 추적
   useEffect(() => {
-    if (!pixelId || !window.fbq) return;
+    if (
+      !scriptReady ||
+      !pixelId ||
+      isAdmin ||
+      !window.fbq
+    ) {
+      return;
+    }
 
     if (initializedId.current !== pixelId) {
       window.fbq("init", pixelId);
       initializedId.current = pixelId;
     }
 
-    trackPageView();
-  }, [pixelId, pathname, isAdmin]);
+    if (lastTrackedPath.current !== pathname) {
+      window.fbq("track", "PageView");
+      lastTrackedPath.current = pathname;
+    }
+  }, [scriptReady, pixelId, pathname, isAdmin]);
 
   if (!pixelId || isAdmin) return null;
 
@@ -72,16 +87,7 @@ export default function MetaPixel() {
     <Script
       id="meta-pixel-script"
       strategy="afterInteractive"
-      onReady={() => {
-        if (!window.fbq) return;
-
-        if (initializedId.current !== pixelId) {
-          window.fbq("init", pixelId);
-          initializedId.current = pixelId;
-        }
-
-        trackPageView();
-      }}
+      onReady={() => setScriptReady(true)}
     >
       {`
         !function(f,b,e,v,n,t,s)
