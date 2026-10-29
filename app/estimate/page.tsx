@@ -313,7 +313,28 @@ export default function EstimatePage() {
         }
       );
 
-      setSubmitted(true);
+      // Firebase 저장 성공 후 Meta Lead 이벤트 전송
+try {
+  if (typeof window !== "undefined") {
+    const fbq = (
+      window as Window & {
+        fbq?: (...args: unknown[]) => void;
+      }
+    ).fbq;
+
+    if (typeof fbq === "function") {
+      fbq("track", "Lead", {
+        content_name: "화장품 제조 견적 문의",
+        content_category: "OEM/ODM",
+      });
+    }
+  }
+} catch (pixelError) {
+  console.error("Meta Lead 이벤트 전송 오류:", pixelError);
+}
+
+// 기존 접수 완료 화면
+setSubmitted(true);
 
       window.scrollTo({
         top: 0,
